@@ -1,0 +1,46 @@
+.bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 9px 18px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.18s ease;
+  font-family: var(--font-body);
+}
+
+.btn:hover {
+  border-color: var(--green);
+  color: var(--text-1);
+}
+
+.btn.active {
+  background: var(--green-glow);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.count {
+  background: var(--bg-card2);
+  color: var(--text-3);
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.btn.active .count {
+  background: rgba(0,230,118,0.2);
+  color: var(--green);
+}
