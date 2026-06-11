@@ -1,8 +1,12 @@
+export interface Roleta {
+  label: string;
+  url: string;
+}
+
 export interface House {
   id: string;
   name: string;
   url: string;
-  hasDaily: boolean;
-  dailyUrl?: string;
+  roletas: Roleta[];
   active: boolean;
 }
