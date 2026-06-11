@@ -13,6 +13,7 @@ export interface House {
   url: string;           // url principal
   roletas: Roleta[];     // lista de roletas/bonus diários (pode ter 1 ou mais)
   active: boolean;       // false = riscado/evitar
+  note?: string;         // observação adicional (ex: avisos)
 }
 
 export const houses: House[] = [
@@ -128,17 +129,46 @@ export const houses: House[] = [
     active: true,
   },
   {
-    id: 'mma',
-    name: 'MMA Bet',
-    url: 'https://mma.bet.br/',
-    roletas: [{ label: 'Bônus', url: 'https://mma.bet.br/' }],
+    id: 'apostou',
+    name: 'Apostou',
+    url: 'https://www.apostou.bet.br/',
+    roletas: [{ label: 'Roleta', url: 'https://www.apostou.bet.br/' }],
+    active: true,
+  },
+  {
+    id: 'ona',
+    name: 'ONA',
+    url: 'https://ona.bet.br/',
+    roletas: [{ label: 'Roleta', url: 'https://ona.bet.br/' }],
+    active: true,
+  },
+  {
+    id: 'betnacional',
+    name: 'Bet Nacional',
+    url: 'https://betnacional.bet.br/promocoes',
+    roletas: [{ label: 'Promoções', url: 'https://betnacional.bet.br/promocoes' }],
+    active: true,
+  },
+  {
+    id: 'jogao',
+    name: 'Jogão',
+    url: 'https://jogao.bet.br/',
+    roletas: [{ label: 'Bônus', url: 'https://jogao.bet.br/' }],
+    active: true,
+  },
+  {
+    id: 'jogodeouro',
+    name: 'Jogo de Ouro',
+    url: 'https://jogodeouro.bet.br/',
+    roletas: [{ label: 'Bônus', url: 'https://jogodeouro.bet.br/' }],
     active: true,
   },
   {
     id: 'galera',
     name: 'Galera Bet',
     url: 'https://www.galera.bet.br/cassino',
-    roletas: [],
-    active: false,
+    roletas: [{ label: 'Cassino', url: 'https://www.galera.bet.br/cassino' }],
+    active: true,
+    note: '⚠️ Verificar disponibilidade de roleta diária antes de clicar',
   },
 ];

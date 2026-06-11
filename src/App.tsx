@@ -172,6 +172,10 @@ export default function App() {
                   {hasDouble && <span className={styles.doubleBadge}>×{house.roletas.length}</span>}
                 </a>
 
+                {house.note && (
+                  <div className={styles.houseNote}>{house.note}</div>
+                )}
+
                 <div className={styles.roletaList}>
                   {house.roletas.map((r, ri) => {
                     const key = rk(house.id, ri);

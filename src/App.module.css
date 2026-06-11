@@ -203,6 +203,16 @@
   letter-spacing: 0.02em;
 }
 
+.houseNote {
+  font-size: 11px;
+  color: var(--text3);
+  padding: 6px 8px;
+  background: rgba(255, 183, 77, 0.1);
+  border-left: 2px solid var(--amber);
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
 /* ROLETA BUTTONS */
 .roletaList {
   display: flex;
