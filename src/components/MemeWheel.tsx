@@ -7,12 +7,10 @@ interface WheelItem {
   color: string;
   textColor: string;
   weight: number;
-  slowSpin?: boolean; // se true, gira bem devagar até parar no id4
-  redirectTo?: string;
 }
 
 const ITEMS: WheelItem[] = [
-  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 60, slowSpin: true, redirectTo: '4' },
+  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 60 },
   { id: '2', label: 'Tente de novo 🔄',   color: '#1d4ed8', textColor: '#dbeafe', weight: 20 },
   { id: '3', label: 'Quase lá... 😬',     color: '#7c3aed', textColor: '#ede9fe', weight: 12 },
   { id: '4', label: 'Jatada na cara 🤕',  color: '#b91c1c', textColor: '#fee2e2', weight: 8  },
@@ -24,8 +22,6 @@ const CY = SIZE / 2;
 const R  = SIZE / 2 - 8;
 const TWO_PI = Math.PI * 2;
 
-// Segments laid out starting at angle 0, clockwise.
-// Pointer fixed at top = -PI/2 = -0.25 turns.
 function getSegments(items: WheelItem[]) {
   const total = items.reduce((s, i) => s + i.weight, 0);
   let acc = 0;
@@ -39,16 +35,6 @@ function getSegments(items: WheelItem[]) {
 
 const SEGS = getSegments(ITEMS);
 
-// Which segment is under the pointer given rotation in turns?
-function getWinner(rotTurns: number): number {
-  const pointer = ((0.75 - rotTurns) % 1 + 1) % 1;
-  for (let i = 0; i < SEGS.length; i++) {
-    if (pointer >= SEGS[i].startFrac && pointer < SEGS[i].startFrac + SEGS[i].span) return i;
-  }
-  return 0;
-}
-
-// Rotation (turns) that places center of segment[idx] under the pointer
 function rotForIdx(idx: number): number {
   return ((0.75 - SEGS[idx].midFrac) % 1 + 1) % 1;
 }
@@ -124,7 +110,6 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.fillStyle = '#17d585';
   ctx.fill();
 
-  // pointer
   ctx.save();
   ctx.translate(CX, 6);
   ctx.beginPath();
@@ -139,11 +124,54 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.restore();
 }
 
-// ── easing ──────────────────────────────────────────────────
-// Normal fast spin: ease out cubic
-function easeOutCubic(t: number) { return 1 - Math.pow(1 - t, 3); }
-// Slow creep: ease out expo — starts normally, ends very very slowly
-function easeOutExpo(t: number)  { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+// ── torment easing ──────────────────────────────────────────
+// Builds a custom velocity curve:
+// 1. Fast spin (normal)
+// 2. Slows down approaching R$1000 — suspense!
+// 3. "Almost stops" right on R$1000 (pointer grazes it)
+// 4. Picks up again — "nooo!"
+// 5. Slowly crawls and dies on Jatada
+//
+// We do this by building a piecewise position function in [0,1] → [0, totalTurns]
+
+function buildCurve(totalTurns: number) {
+  // Phases (fractions of total time):
+  // [0.00–0.45] fast spin, easeNone
+  // [0.45–0.65] decelerate approaching R$1000
+  // [0.65–0.75] AGONIZING near-stop on R$1000 (almost zero velocity)
+  // [0.75–0.85] re-accelerate (cruel bounce)
+  // [0.85–1.00] final decelerate to Jatada
+
+  return (t: number): number => {
+    if (t <= 0.45) {
+      // fast, linear-ish
+      const u = t / 0.45;
+      return totalTurns * 0.30 * u;
+    }
+    if (t <= 0.65) {
+      // decelerate: cubic ease-in (approaching slowly)
+      const u = (t - 0.45) / 0.20;
+      const eased = u * u * u; // slow start of decel
+      return totalTurns * (0.30 + 0.32 * eased);
+    }
+    if (t <= 0.75) {
+      // near-stop — exponential crawl, almost touches R$1000
+      const u = (t - 0.65) / 0.10;
+      const crawl = 1 - Math.pow(1 - u, 4); // very slow
+      return totalTurns * (0.62 + 0.04 * crawl); // barely moves (0.04 turns = ~14°)
+    }
+    if (t <= 0.85) {
+      // cruel re-acceleration
+      const u = (t - 0.75) / 0.10;
+      const accel = u * u;
+      return totalTurns * (0.66 + 0.12 * accel);
+    }
+    // final slowdown to Jatada
+    const u = (t - 0.85) / 0.15;
+    const eased = 1 - Math.pow(1 - u, 3);
+    return totalTurns * (0.78 + 0.22 * eased);
+  };
+}
 
 // ── component ───────────────────────────────────────────────
 type Phase = 'idle' | 'spinning' | 'done';
@@ -153,6 +181,7 @@ export function MemeWheel() {
   const [phase, setPhase]       = useState<Phase>('idle');
   const [rotTurns, setRotTurns] = useState(0);
   const [winner, setWinner]     = useState<WheelItem | null>(null);
+  const [taunt, setTaunt]       = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
   const rotRef    = useRef(0);
@@ -173,48 +202,52 @@ export function MemeWheel() {
   const spin = useCallback(() => {
     if (phase !== 'idle' && phase !== 'done') return;
     setWinner(null);
+    setTaunt('');
     setPhase('spinning');
 
-    // weighted random pick
-    const total = ITEMS.reduce((s, i) => s + i.weight, 0);
-    let r = Math.random() * total;
-    let pickedIdx = 0;
-    for (let i = 0; i < ITEMS.length; i++) {
-      r -= ITEMS[i].weight;
-      if (r <= 0) { pickedIdx = i; break; }
-    }
+    // Always land on Jatada (id 4, index 3)
+    const jatadaIdx = ITEMS.findIndex(i => i.id === '4');
+    const landRot   = rotForIdx(jatadaIdx);
+    const curFrac   = ((rotRef.current % 1) + 1) % 1;
+    const diff      = ((landRot - curFrac) + 1) % 1;
 
-    const picked = ITEMS[pickedIdx];
+    // R$1000 is index 0 — calculate where it sits relative to Jatada
+    // so the "near stop" phase grazes over R$1000 before escaping to Jatada
+    // We do 8 full spins; the curve handles the drama
+    const spins      = 8;
+    const totalTurns = spins + diff;
+    const curve      = buildCurve(totalTurns);
 
-    // Determine actual landing index (redirect if slowSpin)
-    const landIdx = picked.slowSpin && picked.redirectTo
-      ? ITEMS.findIndex(i => i.id === picked.redirectTo)
-      : pickedIdx;
+    const startRot = rotRef.current;
+    const duration = 8000;
+    const t0       = performance.now();
 
-    const landRot  = rotForIdx(landIdx);
-    const curFrac  = ((rotRef.current % 1) + 1) % 1;
-    const diff     = ((landRot - curFrac) + 1) % 1;
-
-    // Normal spin: 6-9 full turns, 4.5s, easeOutCubic
-    // Slow spin:   2-3 full turns, 9s,   easeOutExpo  (visibly crawls to a stop)
-    const isSlow    = !!picked.slowSpin;
-    const spins     = isSlow ? 2 + Math.random() : 6 + Math.floor(Math.random() * 4);
-    const target    = rotRef.current + spins + diff;
-    const duration  = isSlow ? 9000 : 4500;
-    const easeFn    = isSlow ? easeOutExpo : easeOutCubic;
-
-    const start = rotRef.current;
-    const t0    = performance.now();
+    // taunt messages timed to phases
+    const taunts: [number, string][] = [
+      [0.60, '😲 R$ 1.000!!!'],
+      [0.68, '🤑 VAI GANHAR!!'],
+      [0.72, '😱 QUASE!!!'],
+      [0.76, '💀 NÃO!!!'],
+      [0.90, 'kkkkkkkkkkk'],
+    ];
+    let tauntIdx = 0;
 
     cancelAnimationFrame(rafRef.current);
 
     const animate = (now: number) => {
       const t = Math.min((now - t0) / duration, 1);
-      setRot(start + (target - start) * easeFn(t));
+
+      // fire taunts
+      while (tauntIdx < taunts.length && t >= taunts[tauntIdx][0]) {
+        setTaunt(taunts[tauntIdx][1]);
+        tauntIdx++;
+      }
+
+      setRot(startRot + curve(t));
 
       if (t < 1) { rafRef.current = requestAnimationFrame(animate); return; }
 
-      setWinner(ITEMS[landIdx]);
+      setWinner(ITEMS[jatadaIdx]);
       setPhase('done');
     };
 
@@ -225,13 +258,14 @@ export function MemeWheel() {
     cancelAnimationFrame(rafRef.current);
     setPhase('idle');
     setWinner(null);
+    setTaunt('');
   }, []);
 
   const isSpinning = phase === 'spinning';
 
   const btnLabel =
-    isSpinning   ? 'Girando...' :
-    phase === 'done' ? 'Girar de novo' :
+    isSpinning       ? 'Girando...' :
+    phase === 'done' ? 'Tentar de novo 😭' :
     'Girar';
 
   if (!open) {
@@ -253,6 +287,10 @@ export function MemeWheel() {
         <div className={styles.canvasWrap}>
           <canvas ref={canvasRef} width={SIZE} height={SIZE} className={styles.canvas} />
         </div>
+
+        {taunt && (
+          <div key={taunt} className={styles.taunt}>{taunt}</div>
+        )}
 
         <div className={styles.legend}>
           {ITEMS.map(item => (
@@ -276,7 +314,7 @@ export function MemeWheel() {
             className={styles.winnerBox}
             style={{ borderColor: winner.color + '66', background: winner.color + '18' }}
           >
-            <span className={styles.winnerIcon}>🏆</span>
+            <span className={styles.winnerIcon}>💀</span>
             <span className={styles.winnerText} style={{ color: winner.textColor }}>
               {winner.label}
             </span>
