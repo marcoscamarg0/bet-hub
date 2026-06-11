@@ -1,118 +1,109 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { houses, siteConfig } from './data';
-import BettingCard from './components/BettingCard';
-import FilterBar from './components/FilterBar';
-import type { Category } from './types';
+import type { House } from './types';
 import styles from './App.module.css';
 
-type FilterValue = 'todos' | Category;
-
-// Animated chip SVG for the hero background
-function ChipDecor() {
-  return (
-    <div className={styles.chipDecor} aria-hidden>
-      {['🃏','🎲','🎴','♠️','♥️','🎰','💎','🪙'].map((ch, i) => (
-        <span key={i} className={styles.chip} style={{ animationDelay: `${i * 0.7}s`, left: `${10 + i * 11}%` }}>
-          {ch}
-        </span>
-      ))}
-    </div>
-  );
-}
+type Filter = 'todas' | 'diaria' | 'ativas';
 
 export default function App() {
-  const [filter, setFilter] = useState<FilterValue>('todos');
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<Filter>('todas');
+  const [checked, setChecked] = useState<Set<string>>(new Set());
 
-  const filtered = useMemo(() => {
-    return houses.filter(h => {
-      const matchCat = filter === 'todos' || h.category.includes(filter as Category);
-      const matchSearch = !search || h.name.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch;
+  const toggle = (id: string) =>
+    setChecked(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
     });
-  }, [filter, search]);
 
-  // Count per filter
-  const counts = useMemo(() => {
-    const result: Record<string, number> = { todos: houses.length };
-    (['esportes', 'cassino', 'ao-vivo'] as Category[]).forEach(cat => {
-      result[cat] = houses.filter(h => h.category.includes(cat)).length;
-    });
-    return result;
-  }, []);
+  const filtered = houses.filter(h => {
+    if (filter === 'diaria') return h.hasDaily;
+    if (filter === 'ativas') return h.active;
+    return true;
+  });
 
-  const featuredCount = houses.filter(h => h.featured).length;
-  const totalBonus = houses.filter(h => !h.isTrash).length;
+  const dailyTotal = houses.filter(h => h.hasDaily && h.active).length;
+  const activeTotal = houses.filter(h => h.active).length;
+  const checkedToday = [...checked].filter(id => {
+    const h = houses.find(x => x.id === id);
+    return h?.hasDaily;
+  }).length;
 
   return (
-    <div className={styles.app}>
-      {/* ── HERO ── */}
-      <header className={styles.hero}>
-        <ChipDecor />
-        <div className={styles.heroInner}>
-          <div className={styles.heroEyebrow}>
-            <span className={styles.dot} />
-            Atualizado manualmente
-          </div>
-          <h1 className={styles.heroTitle}>
-            {siteConfig.title}
-            <span className={styles.heroAccent}>.</span>
-          </h1>
-          <p className={styles.heroSub}>{siteConfig.description}</p>
-
-          <div className={styles.stats}>
-            <div className={styles.stat}>
-              <span className={styles.statNum}>{houses.length}</span>
-              <span className={styles.statLabel}>Casas</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.stat}>
-              <span className={styles.statNum}>{featuredCount}</span>
-              <span className={styles.statLabel}>Top Picks</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.stat}>
-              <span className={styles.statNum}>{totalBonus}</span>
-              <span className={styles.statLabel}>Com Bônus</span>
-            </div>
-          </div>
+    <div className={styles.page}>
+      {/* Header */}
+      <header className={styles.header}>
+        <h1 className={styles.logo}>{siteConfig.title}</h1>
+        <div className={styles.progress}>
+          <span className={styles.progressLabel}>Roletas hoje</span>
+          <span className={styles.progressCount}>
+            <span className={styles.progressDone}>{checkedToday}</span>
+            <span className={styles.progressSep}>/</span>
+            {dailyTotal}
+          </span>
         </div>
       </header>
 
-      {/* ── CONTROLS ── */}
-      <section className={styles.controls}>
-        <FilterBar active={filter} onChange={setFilter} counts={counts} />
-        <div className={styles.searchWrap}>
-          <span className={styles.searchIcon}>🔍</span>
-          <input
-            className={styles.search}
-            type="text"
-            placeholder="Buscar casa..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-      </section>
+      {/* Filters */}
+      <div className={styles.filters}>
+        {(['todas', 'diaria', 'ativas'] as Filter[]).map(f => (
+          <button
+            key={f}
+            className={`${styles.fbtn} ${filter === f ? styles.factive : ''}`}
+            onClick={() => setFilter(f)}
+          >
+            {f === 'todas' ? `Todas (${houses.length})` : f === 'diaria' ? `Roleta diária (${dailyTotal})` : `Ativas (${activeTotal})`}
+          </button>
+        ))}
+      </div>
 
-      {/* ── GRID ── */}
-      <main className={styles.main}>
-        {filtered.length === 0 ? (
-          <div className={styles.empty}>
-            <span>😶</span>
-            <p>Nenhuma casa encontrada.</p>
-          </div>
-        ) : (
-          <div className={styles.grid}>
-            {filtered.map(house => (
-              <BettingCard key={house.id} house={house} />
-            ))}
-          </div>
-        )}
+      {/* List */}
+      <main className={styles.list}>
+        {filtered.map((h: House, i: number) => {
+          const done = checked.has(h.id);
+          return (
+            <div
+              key={h.id}
+              className={`${styles.row} ${!h.active ? styles.inactive : ''} ${done ? styles.done : ''}`}
+            >
+              <span className={styles.num}>{String(i + 1).padStart(2, '0')}</span>
+
+              <a
+                href={h.active ? h.url : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.name}
+                onClick={e => !h.active && e.preventDefault()}
+              >
+                {h.name}
+              </a>
+
+              <div className={styles.rowRight}>
+                {h.hasDaily && (
+                  <span className={styles.dailyBadge} title="Tem roleta diária">
+                    🎰 diária
+                  </span>
+                )}
+                {!h.active && (
+                  <span className={styles.trashBadge}>evitar</span>
+                )}
+                {h.hasDaily && h.active && (
+                  <button
+                    className={`${styles.checkBtn} ${done ? styles.checkDone : ''}`}
+                    onClick={() => toggle(h.id)}
+                    title={done ? 'Desmarcar' : 'Marcar como feito hoje'}
+                  >
+                    {done ? '✓' : '○'}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </main>
 
-      {/* ── FOOTER ── */}
       <footer className={styles.footer}>
-        <p>Aposte com responsabilidade. 18+ · Jogue com moderação.</p>
+        Jogue com responsabilidade · 18+
       </footer>
     </div>
   );

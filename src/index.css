@@ -1,69 +1,32 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-deep:    #0a0c0f;
-  --bg-card:    #111418;
-  --bg-card2:   #161a20;
-  --border:     #1e242d;
-  --green:      #00e676;
-  --green-dim:  #00c853;
-  --green-glow: rgba(0, 230, 118, 0.18);
-  --gold:       #ffd600;
-  --gold-dim:   rgba(255, 214, 0, 0.15);
-  --red:        #ff3d57;
-  --text-1:     #f0f4f8;
-  --text-2:     #8a97a8;
-  --text-3:     #4a5568;
-  --radius-sm:  8px;
-  --radius-md:  14px;
-  --radius-lg:  20px;
-  --font-display: 'Syne', sans-serif;
-  --font-body:    'Inter', sans-serif;
+  --bg:       #0d0f12;
+  --surface:  #13161b;
+  --border:   #1e232c;
+  --green:    #22c55e;
+  --green-bg: rgba(34,197,94,0.1);
+  --text-1:   #eef0f3;
+  --text-2:   #7a8694;
+  --text-3:   #3a4250;
+  --red:      #ef4444;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--bg-deep);
+  background: var(--bg);
   color: var(--text-1);
-  font-family: var(--font-body);
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
-
-button { cursor: pointer; font-family: var(--font-body); }
-a { text-decoration: none; }
-
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 var(--green-glow); }
-  50% { box-shadow: 0 0 0 8px transparent; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-8px) rotate(3deg); }
-  66% { transform: translateY(-4px) rotate(-2deg); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
