@@ -1,68 +1,108 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { houses } from './data';
 import styles from './App.module.css';
+import { MemeWheel } from './components/MemeWheel';
 
-// ── Cookie helpers ──────────────────────────────────────────
-const todayKey = () => {
+// ── Storage key ─────────────────────────────────────────────
+const storageKey = () => {
   const d = new Date();
-  return `bh_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+  return `bh_${d.getFullYear()}_${String(d.getMonth()).padStart(2,'0')}_${String(d.getDate()).padStart(2,'0')}`;
 };
 
-function loadChecked(): Set<string> {
-  try {
-    const key = todayKey();
-    const match = document.cookie.split('; ').find(r => r.startsWith(key + '='));
-    if (!match) return new Set();
-    const val = decodeURIComponent(match.split('=')[1]);
-    return new Set(JSON.parse(val));
-  } catch { return new Set(); }
+interface Entry {
+  ts: number; // unix ms
 }
 
-function saveChecked(checked: Set<string>) {
-  const key = todayKey();
+type CheckedMap = Record<string, Entry>; // roletaKey -> Entry
+
+function load(): CheckedMap {
+  try {
+    const key = storageKey();
+    const match = document.cookie.split('; ').find(r => r.startsWith(key + '='));
+    if (!match) return {};
+    return JSON.parse(decodeURIComponent(match.split('=')[1]));
+  } catch { return {}; }
+}
+
+function save(map: CheckedMap) {
+  const key = storageKey();
   const midnight = new Date();
   midnight.setHours(23, 59, 59, 999);
-  document.cookie = `${key}=${encodeURIComponent(JSON.stringify([...checked]))}; expires=${midnight.toUTCString()}; path=/; SameSite=Lax`;
+  document.cookie = `${key}=${encodeURIComponent(JSON.stringify(map))}; expires=${midnight.toUTCString()}; path=/; SameSite=Lax`;
 }
 
-// ── Total roletas ────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────
 const activeHouses = houses.filter(h => h.active);
 const totalRoletas = activeHouses.reduce((s, h) => s + h.roletas.length, 0);
 
-// roleta key = houseId + ':' + roletaIndex
-function roletaKey(houseId: string, idx: number) {
-  return `${houseId}:${idx}`;
+function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
+
+function fmtTime(ts: number) {
+  return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function App() {
-  const [checked, setChecked] = useState<Set<string>>(() => loadChecked());
-  const [filter, setFilter] = useState<'todas' | 'pendentes'>('todas');
+function msUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return midnight.getTime() - now.getTime();
+}
 
-  useEffect(() => { saveChecked(checked); }, [checked]);
+// ── Component ────────────────────────────────────────────────
+export default function App() {
+  const [checked, setChecked] = useState<CheckedMap>(() => load());
+  const [, tick] = useState(0); // force re-render each minute for clock
+  const [filter, setFilter] = useState<'todas' | 'pendentes'>('todas');
+  const midnightTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Save whenever checked changes
+  useEffect(() => { save(checked); }, [checked]);
+
+  // Tick every minute so timestamps stay fresh
+  useEffect(() => {
+    const id = setInterval(() => tick(n => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Reset at midnight
+  useEffect(() => {
+    function scheduleReset() {
+      const ms = msUntilMidnight();
+      midnightTimer.current = setTimeout(() => {
+        setChecked({});
+        scheduleReset(); // reschedule for next day
+      }, ms);
+    }
+    scheduleReset();
+    return () => clearTimeout(midnightTimer.current);
+  }, []);
 
   const toggle = useCallback((key: string) => {
     setChecked(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      const next = { ...prev };
+      if (next[key]) {
+        delete next[key];
+      } else {
+        next[key] = { ts: Date.now() };
+      }
       return next;
     });
   }, []);
 
-  const doneCount = [...checked].length;
+  const doneCount = Object.keys(checked).length;
   const pct = totalRoletas > 0 ? Math.round((doneCount / totalRoletas) * 100) : 0;
   const allDone = doneCount >= totalRoletas;
 
   const displayed = filter === 'pendentes'
-    ? activeHouses.filter(h => h.roletas.some((_, i) => !checked.has(roletaKey(h.id, i))))
+    ? activeHouses.filter(h => h.roletas.some((_, i) => !checked[rk(h.id, i)]))
     : activeHouses;
 
-  // date string
   const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div className={styles.page}>
 
-      {/* ── TOP BAR ── */}
+      {/* TOP BAR */}
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandDot} />
@@ -71,13 +111,11 @@ export default function App() {
         <span className={styles.date}>{dateStr}</span>
       </header>
 
-      {/* ── MISSION BAR ── */}
+      {/* MISSION */}
       <div className={styles.mission}>
         <div className={styles.missionTop}>
           <div className={styles.missionLabel}>
-            {allDone
-              ? '✦ Missão completa!'
-              : `Roletas do dia`}
+            {allDone ? '✦ Missão completa!' : 'Roletas do dia'}
           </div>
           <div className={styles.missionCount}>
             <span className={styles.missionDone}>{doneCount}</span>
@@ -93,7 +131,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── FILTERS ── */}
+      {/* FILTERS */}
       <div className={styles.filters}>
         <button
           className={`${styles.ftab} ${filter === 'todas' ? styles.ftabOn : ''}`}
@@ -109,22 +147,20 @@ export default function App() {
         </button>
       </div>
 
-      {/* ── LIST ── */}
+      {/* LIST */}
       <main className={styles.list}>
         {displayed.map((house, hi) => {
-          const houseDone = house.roletas.every((_, i) => checked.has(roletaKey(house.id, i)));
+          const houseDone = house.roletas.every((_, i) => !!checked[rk(house.id, i)]);
           const hasDouble = house.roletas.length > 1;
 
           return (
             <div
               key={house.id}
               className={`${styles.houseRow} ${houseDone ? styles.houseDone : ''}`}
-              style={{ animationDelay: `${hi * 30}ms` }}
+              style={{ animationDelay: `${hi * 25}ms` }}
             >
-              {/* Left: index */}
               <span className={styles.houseIdx}>{String(hi + 1).padStart(2, '0')}</span>
 
-              {/* Center: name + roletas */}
               <div className={styles.houseBody}>
                 <a
                   href={house.url}
@@ -138,24 +174,29 @@ export default function App() {
 
                 <div className={styles.roletaList}>
                   {house.roletas.map((r, ri) => {
-                    const rk = roletaKey(house.id, ri);
-                    const done = checked.has(rk);
+                    const key = rk(house.id, ri);
+                    const entry = checked[key];
+                    const done = !!entry;
+
                     return (
-                      <button
-                        key={ri}
-                        className={`${styles.roletaBtn} ${done ? styles.roletaDone : ''}`}
-                        onClick={() => toggle(rk)}
-                        title={done ? 'Desmarcar' : 'Marcar como feito'}
-                      >
-                        <span className={styles.roletaCheck}>{done ? '✓' : '○'}</span>
-                        <span className={styles.roletaLabel}>{r.label}</span>
-                      </button>
+                      <div key={ri} className={styles.roletaWrap}>
+                        <button
+                          className={`${styles.roletaBtn} ${done ? styles.roletaDone : ''}`}
+                          onClick={() => toggle(key)}
+                          title={done ? 'Desmarcar' : 'Marcar como feito'}
+                        >
+                          <span className={styles.roletaCheck}>{done ? '✓' : '○'}</span>
+                          <span className={styles.roletaLabel}>{r.label}</span>
+                        </button>
+                        {done && entry && (
+                          <span className={styles.roletaTime}>{fmtTime(entry.ts)}</span>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Right: open link */}
               <a
                 href={house.url}
                 target="_blank"
@@ -169,7 +210,6 @@ export default function App() {
           );
         })}
 
-        {/* Evitar section */}
         {filter === 'todas' && (
           <div className={styles.trashSection}>
             {houses.filter(h => !h.active).map(h => (
@@ -183,8 +223,10 @@ export default function App() {
       </main>
 
       <footer className={styles.footer}>
-        Jogue com responsabilidade · 18+
+        Jogue com responsabilidade · 18+ · Reset automático à meia-noite
       </footer>
+
+      <MemeWheel />
     </div>
   );
 }

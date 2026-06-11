@@ -313,3 +313,20 @@
   color: var(--text3);
   letter-spacing: 0.03em;
 }
+
+/* ROLETA WRAP + TIME */
+.roletaWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.roletaTime {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+  opacity: 0.7;
+  padding-left: 4px;
+  letter-spacing: 0.04em;
+}
