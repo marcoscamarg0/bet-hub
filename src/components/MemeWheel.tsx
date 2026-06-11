@@ -280,7 +280,7 @@ export function MemeWheel() {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <span className={styles.modalTitle}>Roleta Meme</span>
+          <span className={styles.modalTitle}>Roleta da Sorte</span>
           <button className={styles.closeBtn} onClick={() => { reset(); setOpen(false); }}>✕</button>
         </div>
 
