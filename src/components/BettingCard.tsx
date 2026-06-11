@@ -53,7 +53,7 @@ export default function BettingCard({ house }: Props) {
 
       {/* Categories */}
       <div className={styles.categories}>
-        {house.category.map(cat => (
+        {house.category.map((cat: string) => (
           <span key={cat} className={styles.catTag}>{categoryLabels[cat]}</span>
         ))}
       </div>
@@ -66,7 +66,7 @@ export default function BettingCard({ house }: Props) {
 
       {/* Tags */}
       <div className={styles.tags}>
-        {house.tags.map(tag => (
+        {house.tags.map((tag: string) => (
           <span key={tag} className={styles.tag}>{tag}</span>
         ))}
       </div>
