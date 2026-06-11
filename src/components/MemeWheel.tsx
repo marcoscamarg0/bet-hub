@@ -270,7 +270,7 @@ export function MemeWheel() {
 
   if (!open) {
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Roleta meme">
+      <button className={styles.fab} onClick={() => setOpen(true)} title="Roleta SORTUDA">
         🎡
       </button>
     );
@@ -280,7 +280,7 @@ export function MemeWheel() {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <span className={styles.modalTitle}>Roleta Meme</span>
+          <span className={styles.modalTitle}>Roleta SORTUDA</span>
           <button className={styles.closeBtn} onClick={() => { reset(); setOpen(false); }}>✕</button>
         </div>
 
