@@ -12,10 +12,10 @@ interface WheelItem {
 }
 
 const ITEMS: WheelItem[] = [
-  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 60, fake: true, redirectTo: '4' },
-  { id: '2', label: 'Tente de novo 🔄',   color: '#1d4ed8', textColor: '#dbeafe', weight: 20 },
-  { id: '3', label: 'Quase lá... 😬',     color: '#7c3aed', textColor: '#ede9fe', weight: 12 },
-  { id: '4', label: 'Jatada na cara 🤕',  color: '#b91c1c', textColor: '#fee2e2', weight: 8  },
+  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 90, fake: true, redirectTo: '4' },
+  { id: '2', label: 'Tente de novo 🔄',   color: '#1d4ed8', textColor: '#dbeafe', weight: 5 },
+  { id: '3', label: 'Quase lá... 😬',     color: '#7c3aed', textColor: '#ede9fe', weight: 5 },
+  { id: '4', label: 'Jatada na cara 🤕',  color: '#b91c1c', textColor: '#fee2e2', weight: 10  },
 ];
 
 const SIZE = 340;
