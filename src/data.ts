@@ -171,4 +171,18 @@ export const houses: House[] = [
     active: true,
     note: '⚠️ Verificar disponibilidade de roleta diária antes de clicar',
   },
+  {
+    id: 'brasildasorte',
+    name: 'Brasil da Sorte',
+    url: 'https://brasildasorte.bet.br/',
+    roletas: [{ label: 'Roleta', url: 'https://brasildasorte.bet.br/' }],
+    active: true,
+  },
+  {
+    id: 'kto',
+    name: 'KTO',
+    url: 'https://kto.bet.br/',
+    roletas: [{ label: 'Roleta', url: 'https://kto.bet.br/' }],
+    active: true,
+  },
 ];
