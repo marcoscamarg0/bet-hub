@@ -9,6 +9,8 @@ const storageKey = () => {
   return `bh_${d.getFullYear()}_${String(d.getMonth()).padStart(2,'0')}_${String(d.getDate()).padStart(2,'0')}`;
 };
 
+const previousDayTimeKey = 'bh_previous_day_time';
+
 interface Entry {
   ts: number; // unix ms
 }
@@ -31,6 +33,19 @@ function save(map: CheckedMap) {
   document.cookie = `${key}=${encodeURIComponent(JSON.stringify(map))}; expires=${midnight.toUTCString()}; path=/; SameSite=Lax`;
 }
 
+function getPreviousDayTime(): number | null {
+  try {
+    const val = localStorage.getItem(previousDayTimeKey);
+    return val ? parseInt(val, 10) : null;
+  } catch { return null; }
+}
+
+function setPreviousDayTime(ts: number) {
+  try {
+    localStorage.setItem(previousDayTimeKey, String(ts));
+  } catch { }
+}
+
 // ── Helpers ──────────────────────────────────────────────────
 const activeHouses = houses.filter(h => h.active);
 const totalRoletas = activeHouses.reduce((s, h) => s + h.roletas.length, 0);
@@ -51,6 +66,7 @@ function msUntilMidnight() {
 // ── Component ────────────────────────────────────────────────
 export default function App() {
   const [checked, setChecked] = useState<CheckedMap>(() => load());
+  const [previousDayTime, setPreviousDayTimeState] = useState<number | null>(() => getPreviousDayTime());
   const [, tick] = useState(0); // force re-render each minute for clock
   const [filter, setFilter] = useState<'todas' | 'pendentes'>('todas');
   const midnightTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -69,13 +85,20 @@ export default function App() {
     function scheduleReset() {
       const ms = msUntilMidnight();
       midnightTimer.current = setTimeout(() => {
+        // Capture the last timestamp before resetting
+        const entries = Object.values(checked) as Entry[];
+        if (entries.length > 0) {
+          const lastTs = Math.max(...entries.map(e => e.ts));
+          setPreviousDayTime(lastTs);
+          setPreviousDayTimeState(lastTs);
+        }
         setChecked({});
         scheduleReset(); // reschedule for next day
       }, ms);
     }
     scheduleReset();
     return () => clearTimeout(midnightTimer.current);
-  }, []);
+  }, [checked]);
 
   const toggle = useCallback((key: string) => {
     setChecked(prev => {
@@ -108,7 +131,14 @@ export default function App() {
           <span className={styles.brandDot} />
           BetHub
         </div>
-        <span className={styles.date}>{dateStr}</span>
+        <div className={styles.dateSection}>
+          <span className={styles.date}>{dateStr}</span>
+          {previousDayTime && (
+            <span className={styles.previousDayTime}>
+              🕐 Ontem: {fmtTime(previousDayTime)}
+            </span>
+          )}
+        </div>
       </header>
 
       {/* MISSION */}
