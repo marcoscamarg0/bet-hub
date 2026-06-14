@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { houses as localHouses } from './data';
 import { api, type ApiHouse } from './api';
 import { useAuth } from './AuthContext';
+import { useTheme } from './ThemeContext';
 import { LoginScreen } from './Login';
 import { AdminPanel } from './AdminPanel';
 import styles from './App.module.css';
 import { MemeWheel } from './components/MemeWheel';
-import { MinesGame } from './components/Mines';
 
 // ── Helpers ──────────────────────────────────────────────────
 function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
@@ -70,15 +70,21 @@ function fallbackHouses(): ApiHouse[] {
 // ── Main app (after login) ──────────────────────────────────
 function Dashboard() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const [houses, setHouses] = useState<ApiHouse[] | null>(null);
   const [checked, setChecked] = useState<Record<string, { ts: string; amount: number }>>({});
   const [totalGanhoHoje, setTotalGanhoHoje] = useState(0);
+  const [gorjetas, setGorjetas] = useState(0);
+  const [depositos, setDepositos] = useState(0);
+  const [ganhos, setGanhos] = useState(0);
   const [filter, setFilter] = useState<Filter>('todas');
   const [showAdmin, setShowAdmin] = useState(false);
   const [amountModal, setAmountModal] = useState<{ houseId: string; idx: number; label: string } | null>(null);
   const [amountInput, setAmountInput] = useState('');
   const [apiError, setApiError] = useState(false);
+  const [manualAmountType, setManualAmountType] = useState<'gorjeta' | 'deposito' | 'ganho' | null>(null);
+  const [manualAmountInput, setManualAmountInput] = useState('');
 
   const midnightTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -211,6 +217,13 @@ function Dashboard() {
                 Admin
               </button>
             )}
+            <button 
+              className={styles.themeToggle} 
+              onClick={toggleTheme} 
+              title={`Alternar para modo ${theme === 'light' ? 'escuro' : 'claro'}`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
             <button className={styles.logoutBtn} onClick={logout} title="Sair">⏻</button>
           </div>
         </div>
@@ -243,6 +256,141 @@ function Dashboard() {
         <div className={styles.earningsRow}>
           <span className={styles.earningsLabel}>Ganho hoje</span>
           <span className={styles.earningsValue}>{fmtMoney(totalGanhoHoje)}</span>
+        </div>
+      </div>
+
+      {/* MANUAL ENTRIES */}
+      <div className={styles.manualEntriesGrid}>
+        {/* Gorjetas */}
+        <div className={styles.manualCard}>
+          <div className={styles.manualCardTop}>
+            <div className={styles.manualCardLabel}>💰 Gorjetas</div>
+            <div className={styles.manualCardValue}>{fmtMoney(gorjetas)}</div>
+          </div>
+          <div className={styles.manualCardFooter}>
+            <input 
+              type="number" 
+              inputMode="decimal" 
+              step="0.01"
+              min="0"
+              placeholder="Valor" 
+              value={manualAmountType === 'gorjeta' ? manualAmountInput : ''}
+              onChange={(e) => {
+                setManualAmountType('gorjeta');
+                setManualAmountInput(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && manualAmountInput) {
+                  const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                  setGorjetas(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+              className={styles.manualInput}
+            />
+            <button 
+              className={styles.manualBtn}
+              onClick={() => {
+                const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                if (amount > 0) {
+                  setGorjetas(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Depositos */}
+        <div className={styles.manualCard}>
+          <div className={styles.manualCardTop}>
+            <div className={styles.manualCardLabel}>🏦 Depósitos</div>
+            <div className={styles.manualCardValue}>{fmtMoney(depositos)}</div>
+          </div>
+          <div className={styles.manualCardFooter}>
+            <input 
+              type="number" 
+              inputMode="decimal" 
+              step="0.01"
+              min="0"
+              placeholder="Valor" 
+              value={manualAmountType === 'deposito' ? manualAmountInput : ''}
+              onChange={(e) => {
+                setManualAmountType('deposito');
+                setManualAmountInput(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && manualAmountInput) {
+                  const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                  setDepositos(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+              className={styles.manualInput}
+            />
+            <button 
+              className={styles.manualBtn}
+              onClick={() => {
+                const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                if (amount > 0) {
+                  setDepositos(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Ganhos */}
+        <div className={styles.manualCard}>
+          <div className={styles.manualCardTop}>
+            <div className={styles.manualCardLabel}>🎁 Ganhos extras</div>
+            <div className={styles.manualCardValue}>{fmtMoney(ganhos)}</div>
+          </div>
+          <div className={styles.manualCardFooter}>
+            <input 
+              type="number" 
+              inputMode="decimal" 
+              step="0.01"
+              min="0"
+              placeholder="Valor" 
+              value={manualAmountType === 'ganho' ? manualAmountInput : ''}
+              onChange={(e) => {
+                setManualAmountType('ganho');
+                setManualAmountInput(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && manualAmountInput) {
+                  const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                  setGanhos(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+              className={styles.manualInput}
+            />
+            <button 
+              className={styles.manualBtn}
+              onClick={() => {
+                const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
+                if (amount > 0) {
+                  setGanhos(prev => prev + amount);
+                  setManualAmountInput('');
+                  setManualAmountType(null);
+                }
+              }}
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
@@ -358,7 +506,6 @@ function Dashboard() {
       </footer>
 
       <MemeWheel />
-      <MinesGame />
 
       {/* AMOUNT MODAL */}
       {amountModal && (
