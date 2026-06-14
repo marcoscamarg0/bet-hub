@@ -55,7 +55,14 @@ export async function getEarningsOverview(_req: Request, res: Response) {
       const t = totals.find((x) => x._id.toString() === u._id.toString());
       const today = todayMap.get(u._id.toString());
       return {
-        user: { id: u._id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt },
+        user: {
+          id: u._id,
+          name: u.name,
+          username: u.username || u.email?.split('@')[0] || u.name,
+          email: u.email,
+          role: u.role,
+          createdAt: u.createdAt,
+        },
         totalGanho: t?.totalGanho ?? 0,
         totalSpins: t?.totalSpins ?? 0,
         lastPlayedAt: t?.lastPlayedAt ?? null,

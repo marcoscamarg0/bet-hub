@@ -5,6 +5,7 @@ export interface AuthPayload {
   id: string;
   role: 'user' | 'admin';
   name: string;
+  username?: string;
   email: string;
 }
 

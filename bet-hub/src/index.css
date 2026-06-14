@@ -3,16 +3,20 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #080a0e;
-  --surf:      #0d1117;
-  --surf2:     #131920;
-  --border:    #1a2230;
-  --border2:   #243040;
+  --bg:        #07090d;
+  --surf:      #101722;
+  --surf2:     #162131;
+  --border:    #223044;
+  --border2:   #35506e;
   --green:     #17d585;
   --green-dim: rgba(23,213,133,0.12);
   --green-glow:rgba(23,213,133,0.06);
   --amber:     #f5c518;
   --amber-dim: rgba(245,197,24,0.12);
+  --cyan:      #49c8ff;
+  --cyan-dim:  rgba(73,200,255,0.13);
+  --pink:      #ff6fae;
+  --pink-dim:  rgba(255,111,174,0.13);
   --red:       #f04747;
   --text1:     #e8edf3;
   --text2:     #6b7a8d;
@@ -24,7 +28,10 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(23,213,133,0.16), transparent 30%),
+    radial-gradient(circle at 90% 12%, rgba(73,200,255,0.14), transparent 28%),
+    linear-gradient(180deg, #0a0f16 0%, var(--bg) 45%, #050609 100%);
   color: var(--text1);
   font-family: var(--sans);
   font-size: 14px;

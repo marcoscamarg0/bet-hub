@@ -4,8 +4,8 @@ import { api, getToken, setToken, type ApiUser } from './api';
 interface AuthContextValue {
   user: ApiUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (name: string, username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -25,14 +25,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { token, user } = await api.login(email, password);
+  const login = useCallback(async (username: string, password: string) => {
+    const { token, user } = await api.login(username, password);
     setToken(token);
     setUser(user);
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const { token, user } = await api.register(name, email, password);
+  const register = useCallback(async (name: string, username: string, password: string) => {
+    const { token, user } = await api.register(name, username, password);
     setToken(token);
     setUser(user);
   }, []);

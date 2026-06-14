@@ -307,7 +307,7 @@ function EarningsTab() {
                   {row.user.name}
                   {row.user.role === 'admin' && <span className={styles.adminTag}>admin</span>}
                 </span>
-                <span className={styles.earningsUserEmail}>{row.user.email}</span>
+                <span className={styles.earningsUserEmail}>@{row.user.username || row.user.email}</span>
               </div>
               <div className={styles.earningsStats}>
                 <div className={styles.earningsStat}>

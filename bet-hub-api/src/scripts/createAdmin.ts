@@ -4,26 +4,43 @@ import { connectDB } from '../config/db.js';
 import { User } from '../models/User.js';
 import mongoose from 'mongoose';
 
+const ADMIN_USERNAME = 'mestredosmijos';
+const ADMIN_PASSWORD = '123Night!';
+
+function internalEmail(username: string) {
+  return `${username}@bethub.local`;
+}
+
 async function main() {
   await connectDB();
 
-  const email = (process.env.ADMIN_EMAIL || '').toLowerCase();
-  const password = process.env.ADMIN_PASSWORD;
-  const name = process.env.ADMIN_NAME || 'Admin';
+  const username = ADMIN_USERNAME;
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  const existing = await User.findOne({
+    $or: [
+      { username },
+      { email: internalEmail(username) },
+      { email: 'admin@bethub.com' },
+    ],
+  });
 
-  if (!email || !password) {
-    throw new Error('Defina ADMIN_EMAIL e ADMIN_PASSWORD no .env antes de rodar este script');
-  }
-
-  const existing = await User.findOne({ email });
   if (existing) {
+    existing.name = 'Mestre dos Mijos';
+    existing.username = username;
+    existing.email = existing.email || internalEmail(username);
+    existing.passwordHash = passwordHash;
     existing.role = 'admin';
     await existing.save();
-    console.log(`✅ Usuário ${email} já existia — promovido a admin.`);
+    console.log(`Admin pronto: ${username}`);
   } else {
-    const passwordHash = await bcrypt.hash(password, 10);
-    await User.create({ name, email, passwordHash, role: 'admin' });
-    console.log(`✅ Admin criado: ${email}`);
+    await User.create({
+      name: 'Mestre dos Mijos',
+      username,
+      email: internalEmail(username),
+      passwordHash,
+      role: 'admin',
+    });
+    console.log(`Admin criado: ${username}`);
   }
 
   await mongoose.disconnect();

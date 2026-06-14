@@ -67,6 +67,7 @@ export interface ApiUser {
   id?: string;
   _id?: string;
   name: string;
+  username?: string;
   email: string;
   role: 'user' | 'admin';
   createdAt?: string;
@@ -84,7 +85,7 @@ export interface ApiSpin {
 }
 
 export interface EarningsRow {
-  user: { id: string; name: string; email: string; role: 'user' | 'admin'; createdAt: string };
+  user: { id: string; name: string; username?: string; email: string; role: 'user' | 'admin'; createdAt: string };
   totalGanho: number;
   totalSpins: number;
   lastPlayedAt: string | null;
@@ -94,16 +95,16 @@ export interface EarningsRow {
 
 // ── Auth ──────────────────────────────────────────────────────
 export const api = {
-  register: (name: string, email: string, password: string) =>
+  register: (name: string, username: string, password: string) =>
     request<{ token: string; user: ApiUser }>('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, username, password }),
     }),
 
-  login: (email: string, password: string) =>
+  login: (username: string, password: string) =>
     request<{ token: string; user: ApiUser }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     }),
 
   me: () => request<{ user: ApiUser }>('/api/auth/me'),

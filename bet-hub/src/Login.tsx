@@ -7,7 +7,7 @@ export function LoginScreen() {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,13 +18,13 @@ export function LoginScreen() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login(email, password);
+        await login(username, password);
       } else {
-        await register(name, email, password);
+        await register(name, username, password);
       }
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);
-      else setError('Não foi possível conectar à API. Verifique se o backend está rodando.');
+      else setError('Nao foi possivel conectar a API. Verifique se o backend esta rodando.');
     } finally {
       setLoading(false);
     }
@@ -36,6 +36,11 @@ export function LoginScreen() {
         <div className={styles.brand}>
           <span className={styles.brandDot} />
           BetHub
+        </div>
+
+        <div className={styles.heroText}>
+          <strong>Entrar rapido, sem e-mail.</strong>
+          <span>Use somente usuario e senha para acompanhar roletas, bonus e ganhos do dia.</span>
         </div>
 
         <div className={styles.tabs}>
@@ -63,21 +68,20 @@ export function LoginScreen() {
                 className={styles.input}
                 value={name}
                 onChange={e => setName(e.target.value)}
-                required
                 placeholder="Seu nome"
               />
             </div>
           )}
 
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label}>Usuario</label>
             <input
               className={styles.input}
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              value={username}
+              onChange={e => setUsername(e.target.value)}
               required
-              placeholder="voce@email.com"
+              autoComplete="username"
+              placeholder="seuusuario"
             />
           </div>
 
@@ -90,7 +94,8 @@ export function LoginScreen() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
-              placeholder="••••••••"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              placeholder="********"
             />
           </div>
 

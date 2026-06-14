@@ -19,6 +19,33 @@ function fmtMoney(n: number) {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+type Filter = 'todas' | 'pendentes' | 'gorjetas' | 'deposite';
+
+const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {
+  lotogreen: { gorjeta: 'Gorjetas e roletas diarias', deposite: 'Deposito com campanhas recorrentes' },
+  lottu: { gorjeta: 'Giros e recompensas para usuarios ativos' },
+  novibet: { deposite: 'Bonus para depositar e jogar ao vivo' },
+  br4: { gorjeta: 'Duas roletas de bonus', deposite: 'Campanhas de deposito frequentes' },
+  superbet: { deposite: 'Ofertas para novos depositos' },
+  donald: { gorjeta: 'Bonus direto na conta' },
+  ginga: { gorjeta: 'Roleta e missoes promocionais' },
+  betano: { deposite: 'Promocoes para deposito e aposta' },
+  vaidebet: { deposite: 'Ofertas de deposito e cassino' },
+  hiper: { gorjeta: 'Bonus rapido', deposite: 'Deposito com beneficios de campanha' },
+  esportesdasorte: { deposite: 'Promocoes para deposito' },
+  apostaganha: { gorjeta: 'Roleta no cassino', deposite: 'Bonus de deposito no cassino' },
+  voudebet: { gorjeta: 'Bonus disponivel' },
+  vixe: { gorjeta: 'Roleta promocional' },
+  upbet: { gorjeta: 'Bonus e campanhas ativas' },
+  mma: { gorjeta: 'Bonus de cassino' },
+  apostou: { gorjeta: 'Roleta promocional' },
+  ona: { gorjeta: 'Roleta e missoes' },
+  betnacional: { deposite: 'Promocoes e bonus de deposito' },
+  jogao: { gorjeta: 'Bonus disponivel' },
+  jogodeouro: { gorjeta: 'Bonus disponivel' },
+  galera: { gorjeta: 'Bonus com condicoes especiais' },
+};
+
 function msUntilMidnight() {
   const now = new Date();
   const midnight = new Date(now);
@@ -47,7 +74,7 @@ function Dashboard() {
   const [houses, setHouses] = useState<ApiHouse[] | null>(null);
   const [checked, setChecked] = useState<Record<string, { ts: string; amount: number }>>({});
   const [totalGanhoHoje, setTotalGanhoHoje] = useState(0);
-  const [filter, setFilter] = useState<'todas' | 'pendentes'>('todas');
+  const [filter, setFilter] = useState<Filter>('todas');
   const [showAdmin, setShowAdmin] = useState(false);
   const [amountModal, setAmountModal] = useState<{ houseId: string; idx: number; label: string } | null>(null);
   const [amountInput, setAmountInput] = useState('');
@@ -147,9 +174,14 @@ function Dashboard() {
     // Nota: não removemos o registro do backend para manter histórico de auditoria
   }, []);
 
-  const displayed = filter === 'pendentes'
-    ? activeHouses.filter(h => h.roletas.some((_, i) => !checked[rk(h.id, i)]))
-    : activeHouses;
+  const gorjetaCount = activeHouses.filter(h => bonusTags[h.id]?.gorjeta).length;
+  const depositeCount = activeHouses.filter(h => bonusTags[h.id]?.deposite).length;
+  const displayed = activeHouses.filter(h => {
+    if (filter === 'pendentes') return h.roletas.some((_, i) => !checked[rk(h.id, i)]);
+    if (filter === 'gorjetas') return !!bonusTags[h.id]?.gorjeta;
+    if (filter === 'deposite') return !!bonusTags[h.id]?.deposite;
+    return true;
+  });
 
   const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -173,7 +205,7 @@ function Dashboard() {
         <div className={styles.topbarRight}>
           <span className={styles.date}>{dateStr}</span>
           <div className={styles.userMenu}>
-            <span className={styles.userName}>{user?.name}</span>
+            <span className={styles.userName}>{user?.username || user?.name}</span>
             {user?.role === 'admin' && (
               <button className={styles.adminBtn} onClick={() => setShowAdmin(true)}>
                 Admin
@@ -228,6 +260,18 @@ function Dashboard() {
         >
           Pendentes <span className={styles.ftabCount}>{totalRoletas - doneCount}</span>
         </button>
+        <button
+          className={`${styles.ftab} ${filter === 'gorjetas' ? styles.ftabOn : ''}`}
+          onClick={() => setFilter('gorjetas')}
+        >
+          Gorjetas <span className={styles.ftabCount}>{gorjetaCount}</span>
+        </button>
+        <button
+          className={`${styles.ftab} ${filter === 'deposite' ? styles.ftabOn : ''}`}
+          onClick={() => setFilter('deposite')}
+        >
+          Deposite e ganhe <span className={styles.ftabCount}>{depositeCount}</span>
+        </button>
       </div>
 
       {/* LIST */}
@@ -245,6 +289,7 @@ function Dashboard() {
               <span className={styles.houseIdx}>{String(hi + 1).padStart(2, '0')}</span>
 
               <div className={styles.houseBody}>
+                <div className={styles.houseHead}>
                 <a
                   href={house.url}
                   target="_blank"
@@ -254,8 +299,18 @@ function Dashboard() {
                   {house.name}
                   {hasDouble && <span className={styles.doubleBadge}>×{house.roletas.length}</span>}
                 </a>
+                  <div className={styles.bonusBadges}>
+                    {bonusTags[house.id]?.gorjeta && <span className={styles.gorjetaBadge}>Gorjeta</span>}
+                    {bonusTags[house.id]?.deposite && <span className={styles.depositeBadge}>Deposite e ganhe</span>}
+                  </div>
+                </div>
 
                 {house.note && <div className={styles.houseNote}>{house.note}</div>}
+                {(bonusTags[house.id]?.gorjeta || bonusTags[house.id]?.deposite) && (
+                  <div className={styles.bonusNote}>
+                    {[bonusTags[house.id]?.gorjeta, bonusTags[house.id]?.deposite].filter(Boolean).join(' - ')}
+                  </div>
+                )}
 
                 <div className={styles.roletaList}>
                   {house.roletas.map((r, ri) => {
