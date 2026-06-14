@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root,
 [data-theme="dark"] {
@@ -32,8 +32,9 @@
   --text1: #e8edf3;
   --text2: #6b7a8d;
   --text3: #2e3a4a;
-  --mono: 'Geist Mono', 'Courier New', monospace;
+  --mono: 'JetBrains Mono', 'Geist Mono', 'Courier New', monospace;
   --sans: 'Inter', system-ui, sans-serif;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
 }
 
 [data-theme="light"] {
@@ -64,22 +65,38 @@
   --text1: #0f172a;
   --text2: #475569;
   --text3: #cbd5e1;
-  --mono: 'Geist Mono', 'Courier New', monospace;
+  --mono: 'JetBrains Mono', 'Geist Mono', 'Courier New', monospace;
   --sans: 'Inter', system-ui, sans-serif;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  color-scheme: dark;
+}
+
+[data-theme="light"] html {
+  color-scheme: light;
 }
 
 body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 12% 8%, var(--green-glow) 0%, transparent 38%),
+    radial-gradient(circle at 88% 92%, rgba(73,200,255,0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--text1);
   overflow-x: hidden;
+  min-height: 100vh;
+  line-height: 1.5;
 }
 
 button {
@@ -87,10 +104,57 @@ button {
   border: none;
   background: none;
   transition: var(--transition);
+  font-family: inherit;
 }
 
 input {
   outline: none;
   border: none;
   transition: var(--transition);
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text2);
+}
+
+::selection {
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+/* Shared animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fill {
+  from { width: 0; }
+}
+
+@keyframes pop {
+  0%   { transform: scale(0.6); }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes spin360 {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
