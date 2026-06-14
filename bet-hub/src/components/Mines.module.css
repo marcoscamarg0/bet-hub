@@ -262,8 +262,8 @@
 }
 
 .cell:hover:not(:disabled) {
-  background: rgba(23,213,133,0.12);
-  border-color: rgba(23,213,133,0.4);
+  background: rgba(167,139,250,0.12);
+  border-color: rgba(167,139,250,0.4);
   transform: scale(1.06);
 }
 
@@ -272,8 +272,8 @@
 }
 
 .cellSafe {
-  background: rgba(23,213,133,0.15) !important;
-  border-color: rgba(23,213,133,0.4) !important;
+  background: rgba(167,139,250,0.15) !important;
+  border-color: rgba(167,139,250,0.4) !important;
   cursor: default !important;
 }
 
@@ -329,7 +329,7 @@
   flex: 1;
   padding: 11px;
   background: var(--green, #17d585);
-  color: #03160a;
+  color: #1c1230;
   border: none;
   border-radius: 10px;
   font-size: 14px;
@@ -340,14 +340,14 @@
   font-family: var(--sans, sans-serif);
 }
 
-.btnPlay:hover { background: #1ef59a; }
+.btnPlay:hover { background: #bda4fc; }
 
 .btnCash {
   flex: 1;
   padding: 11px;
-  background: rgba(245,197,24,0.12);
+  background: rgba(251,191,36,0.12);
   color: #f5c518;
-  border: 1px solid rgba(245,197,24,0.3);
+  border: 1px solid rgba(251,191,36,0.3);
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
@@ -356,7 +356,7 @@
   font-family: var(--sans, sans-serif);
 }
 
-.btnCash:hover:not(:disabled) { background: rgba(245,197,24,0.2); }
+.btnCash:hover:not(:disabled) { background: rgba(251,191,36,0.2); }
 .btnCash:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* LEADERBOARD COLUMN */

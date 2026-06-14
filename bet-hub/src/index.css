@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root,
 [data-theme="dark"] {
   --bg-main: #0f172a;
   --bg-surface: #1e293b;
   --bg-surface-hover: #334155;
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
   --color-success: #10b981;
   --color-danger: #ef4444;
   --text-main: #f8fafc;
@@ -14,24 +14,33 @@
   --radius-lg: 12px;
   --radius-md: 8px;
   --transition: all 0.2s ease-in-out;
-  --bg: #07090d;
-  --surf: #101722;
-  --surf2: #162131;
-  --border: #223044;
-  --border2: #35506e;
-  --green: #17d585;
-  --green-dim: rgba(23,213,133,0.12);
-  --green-glow: rgba(23,213,133,0.06);
-  --amber: #f5c518;
-  --amber-dim: rgba(245,197,24,0.12);
-  --cyan: #49c8ff;
-  --cyan-dim: rgba(73,200,255,0.13);
-  --pink: #ff6fae;
-  --pink-dim: rgba(255,111,174,0.13);
-  --red: #f04747;
-  --text1: #e8edf3;
-  --text2: #6b7a8d;
-  --text3: #2e3a4a;
+
+  /* Core surfaces — deep violet-black */
+  --bg: #0a0712;
+  --surf: #14101f;
+  --surf2: #1d1730;
+  --border: #2b2342;
+  --border2: #443a64;
+
+  /* Primary accent — purple */
+  --green: #a78bfa;
+  --green-dim: rgba(167,139,250,0.14);
+  --green-glow: rgba(167,139,250,0.08);
+
+  /* Secondary accents */
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --cyan: #c084fc;
+  --cyan-dim: rgba(192,132,252,0.14);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,0.13);
+  --red: #fb7185;
+
+  /* Text */
+  --text1: #ede9ff;
+  --text2: #9182b8;
+  --text3: #3a3158;
+
   --mono: 'JetBrains Mono', 'Geist Mono', 'Courier New', monospace;
   --sans: 'Inter', system-ui, sans-serif;
   --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
@@ -41,30 +50,35 @@
   --bg-main: #f8fafc;
   --bg-surface: #ffffff;
   --bg-surface-hover: #f1f5f9;
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
   --color-success: #059669;
   --color-danger: #dc2626;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --bg: #f8fafc;
+  --text-main: #1e1530;
+  --text-muted: #6b5d8f;
+
+  --bg: #f8f6fd;
   --surf: #ffffff;
-  --surf2: #f1f5f9;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --green: #10b981;
-  --green-dim: rgba(16,185,129,0.12);
-  --green-glow: rgba(16,185,129,0.06);
+  --surf2: #f3effc;
+  --border: #e3dcf7;
+  --border2: #cdc0ec;
+
+  --green: #7c3aed;
+  --green-dim: rgba(124,58,237,0.10);
+  --green-glow: rgba(124,58,237,0.05);
+
   --amber: #d97706;
   --amber-dim: rgba(217,119,6,0.12);
-  --cyan: #0ea5e9;
-  --cyan-dim: rgba(14,165,233,0.13);
-  --pink: #ec4899;
-  --pink-dim: rgba(236,72,153,0.13);
-  --red: #ef4444;
-  --text1: #0f172a;
-  --text2: #475569;
-  --text3: #cbd5e1;
+  --cyan: #9333ea;
+  --cyan-dim: rgba(147,51,234,0.10);
+  --pink: #db2777;
+  --pink-dim: rgba(219,39,119,0.10);
+  --red: #e11d48;
+
+  --text1: #1e1530;
+  --text2: #6b5d8f;
+  --text3: #d8cef0;
+
   --mono: 'JetBrains Mono', 'Geist Mono', 'Courier New', monospace;
   --sans: 'Inter', system-ui, sans-serif;
   --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
@@ -90,8 +104,9 @@ html {
 body {
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 12% 8%, var(--green-glow) 0%, transparent 38%),
-    radial-gradient(circle at 88% 92%, rgba(73,200,255,0.05) 0%, transparent 40%);
+    radial-gradient(circle at 14% 6%, rgba(167,139,250,0.14) 0%, transparent 40%),
+    radial-gradient(circle at 88% 0%, rgba(192,132,252,0.10) 0%, transparent 38%),
+    radial-gradient(circle at 90% 95%, rgba(244,114,182,0.06) 0%, transparent 42%);
   background-attachment: fixed;
   color: var(--text1);
   overflow-x: hidden;
@@ -157,4 +172,9 @@ input {
 @keyframes spin360 {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
 }

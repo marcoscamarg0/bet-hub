@@ -21,18 +21,22 @@
   align-items: center;
   gap: 9px;
   font-family: var(--display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text1);
-  letter-spacing: -0.01em;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #d4c2ff 0%, #a78bfa 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .brandDot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 8px var(--green);
+  box-shadow: 0 0 12px var(--green), 0 0 24px rgba(167,139,250,0.4);
+  animation: glowPulse 2.4s ease-in-out infinite;
 }
 
 .date {
@@ -44,12 +48,12 @@
 /* MISSION */
 .mission {
   position: relative;
-  background: linear-gradient(145deg, rgba(16,23,34,0.96), rgba(13,18,27,0.96));
+  background: linear-gradient(145deg, rgba(29,23,48,0.96), rgba(20,16,31,0.96));
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 22px 24px;
   margin-bottom: 16px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.04);
   transition: all 0.3s ease;
   overflow: hidden;
 }
@@ -61,8 +65,19 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--green), transparent 70%);
-  opacity: 0.6;
+  background: linear-gradient(90deg, var(--green), var(--pink) 60%, transparent 100%);
+  opacity: 0.7;
+}
+
+.mission::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -20%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(167,139,250,0.16) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .missionTop {
@@ -110,8 +125,8 @@
 }
 
 .progressComplete {
-  background: linear-gradient(90deg, var(--green), #0ff4a4);
-  box-shadow: 0 0 10px rgba(23,213,133,0.4);
+  background: linear-gradient(90deg, var(--green), var(--pink));
+  box-shadow: 0 0 10px rgba(167,139,250,0.4);
 }
 
 /* FILTERS */
@@ -140,8 +155,8 @@
 .ftab:hover { color: var(--text1); border-color: var(--border2); }
 
 .ftabOn {
-  background: linear-gradient(135deg, rgba(23,213,133,0.18), rgba(73,200,255,0.1));
-  border-color: rgba(23,213,133,0.3);
+  background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(192,132,252,0.1));
+  border-color: rgba(167,139,250,0.3);
   color: var(--green);
 }
 
@@ -155,7 +170,7 @@
 }
 
 .ftabOn .ftabCount {
-  background: rgba(23,213,133,0.15);
+  background: rgba(167,139,250,0.15);
   color: var(--green);
 }
 
@@ -174,7 +189,7 @@
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: rgba(16,23,34,0.7);
+  background: rgba(26,18,46,0.7);
   animation: fadeIn 0.25s ease both;
   transition: opacity 0.2s, transform 0.15s, border-color 0.15s, background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -182,7 +197,7 @@
 .houseRow:hover {
   transform: translateY(-2px);
   border-color: var(--border2);
-  background: rgba(20,30,44,0.95);
+  background: rgba(32,24,54,0.95);
   box-shadow: 0 10px 28px rgba(0,0,0,0.18);
 }
 
@@ -236,7 +251,7 @@
   font-weight: 600;
   background: var(--amber-dim);
   color: var(--amber);
-  border: 1px solid rgba(245,197,24,0.25);
+  border: 1px solid rgba(251,191,36,0.25);
   padding: 1px 6px;
   border-radius: 4px;
   letter-spacing: 0.02em;
@@ -261,13 +276,13 @@
 .gorjetaBadge {
   color: var(--pink);
   background: var(--pink-dim);
-  border: 1px solid rgba(255,111,174,0.24);
+  border: 1px solid rgba(244,114,182,0.24);
 }
 
 .depositeBadge {
   color: var(--cyan);
   background: var(--cyan-dim);
-  border: 1px solid rgba(73,200,255,0.24);
+  border: 1px solid rgba(192,132,252,0.24);
 }
 
 /* ROLETA BUTTONS */
@@ -300,13 +315,13 @@
 
 .roletaDone {
   background: var(--green-dim);
-  border-color: rgba(23,213,133,0.3);
+  border-color: rgba(167,139,250,0.3);
   color: var(--green);
 }
 
 .roletaDone:hover {
-  background: rgba(23,213,133,0.18);
-  border-color: rgba(23,213,133,0.5);
+  background: rgba(167,139,250,0.18);
+  border-color: rgba(167,139,250,0.5);
   color: var(--green);
 }
 
@@ -364,8 +379,8 @@
   font-size: 10px;
   font-weight: 600;
   color: var(--red);
-  background: rgba(240,71,71,0.08);
-  border: 1px solid rgba(240,71,71,0.2);
+  background: rgba(251,113,133,0.08);
+  border: 1px solid rgba(251,113,133,0.2);
   padding: 2px 8px;
   border-radius: 4px;
   letter-spacing: 0.04em;
@@ -437,14 +452,14 @@
   font-weight: 600;
   color: var(--amber);
   background: var(--amber-dim);
-  border: 1px solid rgba(245,197,24,0.25);
+  border: 1px solid rgba(251,191,36,0.25);
   padding: 4px 10px;
   border-radius: 6px;
   transition: all 0.15s;
 }
 
 .adminBtn:hover {
-  background: rgba(245,197,24,0.2);
+  background: rgba(251,191,36,0.2);
 }
 
 .logoutBtn {
@@ -462,7 +477,7 @@
 
 .logoutBtn:hover {
   color: var(--red);
-  border-color: rgba(240,71,71,0.3);
+  border-color: rgba(251,113,133,0.3);
 }
 
 /* API WARNING */
@@ -470,7 +485,7 @@
   font-size: 12px;
   color: var(--amber);
   background: var(--amber-dim);
-  border: 1px solid rgba(245,197,24,0.25);
+  border: 1px solid rgba(251,191,36,0.25);
   border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 14px;
@@ -503,7 +518,7 @@
   font-size: 11px;
   color: var(--amber);
   background: var(--amber-dim);
-  border: 1px solid rgba(245,197,24,0.2);
+  border: 1px solid rgba(251,191,36,0.2);
   border-radius: 6px;
   padding: 4px 8px;
   display: inline-block;
@@ -595,12 +610,12 @@
 
 .amountConfirm {
   background: var(--green);
-  color: #03160a;
+  color: #1c1230;
   border: none;
 }
 
 .amountConfirm:hover {
-  background: #1ef59a;
+  background: #bda4fc;
 }
 
 /* THEME TOGGLE */
@@ -638,7 +653,7 @@
 }
 
 .manualCard {
-  background: linear-gradient(135deg, rgba(16,23,34,0.9), rgba(13,18,27,0.9));
+  background: linear-gradient(135deg, rgba(26,18,46,0.9), rgba(20,14,36,0.9));
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
@@ -650,7 +665,7 @@
 
 .manualCard:hover {
   border-color: var(--border2);
-  background: linear-gradient(135deg, rgba(20,30,44,0.95), rgba(16,24,34,0.95));
+  background: linear-gradient(135deg, rgba(32,24,54,0.95), rgba(22,16,38,0.95));
 }
 
 .manualCardTop {
@@ -700,7 +715,7 @@
 
 .manualBtn {
   background: var(--green);
-  color: #03160a;
+  color: #1c1230;
   border: none;
   border-radius: 8px;
   width: 38px;
@@ -714,7 +729,7 @@
 }
 
 .manualBtn:hover {
-  background: #1ef59a;
+  background: #bda4fc;
   transform: scale(1.08);
 }
 

@@ -6,8 +6,8 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: var(--surf2, #131920);
-  border: 1px solid var(--border2, #243040);
+  background: var(--surf2, #1d1730);
+  border: 1px solid var(--border2, #443a64);
   font-size: 26px;
   cursor: pointer;
   z-index: 999;
@@ -20,8 +20,8 @@
 
 .fab:hover {
   transform: scale(1.08) rotate(-8deg);
-  box-shadow: 0 6px 28px rgba(23,213,133,0.25);
-  border-color: rgba(23,213,133,0.4);
+  box-shadow: 0 6px 28px rgba(167,139,250,0.25);
+  border-color: rgba(167,139,250,0.4);
 }
 
 /* OVERLAY */
@@ -45,8 +45,8 @@
 
 /* MODAL */
 .modal {
-  background: var(--surf, #0d1117);
-  border: 1px solid var(--border, #1a2230);
+  background: var(--surf, #14101f);
+  border: 1px solid var(--border, #2b2342);
   border-radius: 20px;
   padding: 24px 20px 20px;
   display: flex;
@@ -75,15 +75,15 @@
   font-family: var(--mono, monospace);
   font-size: 13px;
   font-weight: 600;
-  color: var(--text2, #6b7a8d);
+  color: var(--text2, #9182b8);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .closeBtn {
   background: none;
-  border: 1px solid var(--border, #1a2230);
-  color: var(--text2, #6b7a8d);
+  border: 1px solid var(--border, #2b2342);
+  color: var(--text2, #9182b8);
   width: 30px;
   height: 30px;
   border-radius: 8px;
@@ -96,8 +96,8 @@
 }
 
 .closeBtn:hover {
-  color: var(--text1, #e8edf3);
-  background: var(--surf2, #131920);
+  color: var(--text1, #ede9ff);
+  background: var(--surf2, #1d1730);
 }
 
 /* CANVAS */
@@ -105,8 +105,8 @@
   position: relative;
   padding: 4px;
   border-radius: 50%;
-  background: var(--surf2, #131920);
-  border: 1px solid var(--border, #1a2230);
+  background: var(--surf2, #1d1730);
+  border: 1px solid var(--border, #2b2342);
 }
 
 .canvas {
@@ -138,7 +138,7 @@
 
 .legendLabel {
   font-size: 11px;
-  color: var(--text2, #6b7a8d);
+  color: var(--text2, #9182b8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -148,8 +148,8 @@
 .spinBtn {
   width: 100%;
   padding: 12px;
-  background: var(--green, #17d585);
-  color: #03160a;
+  background: var(--green, #a78bfa);
+  color: #1c1230;
   border: none;
   border-radius: 10px;
   font-size: 14px;
@@ -160,7 +160,7 @@
 }
 
 .spinBtn:hover:not(.spinBtnDisabled) {
-  background: #1ef59a;
+  background: #bda4fc;
   transform: translateY(-1px);
 }
 
@@ -210,7 +210,7 @@
 .taunt {
   font-size: 18px;
   font-weight: 700;
-  color: var(--text1, #e8edf3);
+  color: var(--text1, #ede9ff);
   text-align: center;
   letter-spacing: 0.02em;
   min-height: 28px;

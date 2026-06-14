@@ -50,7 +50,7 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.shadowBlur = 24;
   ctx.beginPath();
   ctx.arc(CX, CY, R + 4, 0, TWO_PI);
-  ctx.fillStyle = '#0d1117';
+  ctx.fillStyle = '#14101f';
   ctx.fill();
   ctx.restore();
 
@@ -95,8 +95,8 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.stroke();
 
   const grad = ctx.createRadialGradient(CX - 6, CY - 6, 2, CX, CY, 26);
-  grad.addColorStop(0, '#2a3040');
-  grad.addColorStop(1, '#0d1117');
+  grad.addColorStop(0, '#3a2e58');
+  grad.addColorStop(1, '#14101f');
   ctx.beginPath();
   ctx.arc(CX, CY, 24, 0, TWO_PI);
   ctx.fillStyle = grad;
@@ -107,7 +107,7 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
 
   ctx.beginPath();
   ctx.arc(CX, CY, 5, 0, TWO_PI);
-  ctx.fillStyle = '#17d585';
+  ctx.fillStyle = '#a78bfa';
   ctx.fill();
 
   ctx.save();
@@ -117,8 +117,8 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.lineTo(8, 0);
   ctx.lineTo(0, 22);
   ctx.closePath();
-  ctx.fillStyle = '#17d585';
-  ctx.shadowColor = '#17d585';
+  ctx.fillStyle = '#a78bfa';
+  ctx.shadowColor = '#a78bfa';
   ctx.shadowBlur = 12;
   ctx.fill();
   ctx.restore();
