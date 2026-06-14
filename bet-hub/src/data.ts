@@ -3,17 +3,17 @@
 // ============================================================
 
 export interface Roleta {
-  label: string;   // ex: "Roleta 1", "Raspadinha"
+  label: string;
   url: string;
 }
 
 export interface House {
   id: string;
   name: string;
-  url: string;           // url principal
-  roletas: Roleta[];     // lista de roletas/bonus diários (pode ter 1 ou mais)
-  active: boolean;       // false = riscado/evitar
-  note?: string;         // observação adicional (ex: avisos)
+  url: string;
+  roletas: Roleta[];
+  active: boolean;
+  note?: string;
 }
 
 export const houses: House[] = [
@@ -90,7 +90,7 @@ export const houses: House[] = [
     id: 'hiper',
     name: 'Hiper Bet',
     url: 'https://hiper.bet.br/ptb/bet/main',
-    roletas: [{ label: 'Roleta', url: 'https://hiper.bet.br/ptb/bet/main' }],
+    roletas: [{ label: 'Bônus', url: 'https://hiper.bet.br/ptb/bet/main' }],
     active: true,
   },
   {
@@ -111,7 +111,7 @@ export const houses: House[] = [
     id: 'voudebet',
     name: 'VoudeBet',
     url: 'https://voudebet.tech/',
-    roletas: [{ label: 'Roleta', url: 'https://voudebet.tech/' }],
+    roletas: [{ label: 'Bônus', url: 'https://voudebet.tech/' }],
     active: true,
   },
   {
@@ -125,7 +125,14 @@ export const houses: House[] = [
     id: 'upbet',
     name: 'Up Bet',
     url: 'https://up.bet.br/pt-BR',
-    roletas: [{ label: 'Roleta', url: 'https://up.bet.br/pt-BR' }],
+    roletas: [{ label: 'Bônus', url: 'https://up.bet.br/pt-BR' }],
+    active: true,
+  },
+  {
+    id: 'mma',
+    name: 'MMA Bet',
+    url: 'https://mma.bet.br/',
+    roletas: [{ label: 'Bônus', url: 'https://mma.bet.br/' }],
     active: true,
   },
   {
@@ -137,7 +144,7 @@ export const houses: House[] = [
   },
   {
     id: 'ona',
-    name: 'ONA',
+    name: 'Ona Bet',
     url: 'https://ona.bet.br/',
     roletas: [{ label: 'Roleta', url: 'https://ona.bet.br/' }],
     active: true,
@@ -153,51 +160,22 @@ export const houses: House[] = [
     id: 'jogao',
     name: 'Jogão',
     url: 'https://jogao.bet.br/',
-    roletas: [{ label: 'Roleta', url: 'https://jogao.bet.br/' }],
+    roletas: [{ label: 'Bônus', url: 'https://jogao.bet.br/' }],
     active: true,
   },
   {
     id: 'jogodeouro',
     name: 'Jogo de Ouro',
     url: 'https://jogodeouro.bet.br/',
-    roletas: [{ label: 'Roleta', url: 'https://jogodeouro.bet.br/' }],
+    roletas: [{ label: 'Bônus', url: 'https://jogodeouro.bet.br/' }],
     active: true,
   },
   {
     id: 'galera',
     name: 'Galera Bet',
     url: 'https://www.galera.bet.br/cassino',
-    roletas: [{ label: 'Roleta', url: 'https://www.galera.bet.br/cassino' }],
+    roletas: [{ label: 'Bônus', url: 'https://www.galera.bet.br/cassino' }],
     active: true,
-    note: '⚠️ Verificar disponibilidade de roleta diária antes de clicar',
-  },
-  {
-    id: 'brasildasorte',
-    name: 'Brasil da Sorte',
-    url: 'https://brasildasorte.bet.br/',
-    roletas: [{ label: 'Roleta', url: 'https://brasildasorte.bet.br/' }],
-    active: true,
-  },
-  {
-    id: 'kto',
-    name: 'KTO',
-    url: 'https://kto.bet.br/',
-    roletas: [{ label: 'Roleta', url: 'https://kto.bet.br/' }],
-    active: true,
-  },
-  {
-    id: 'zeroum',
-    name: 'Zero Um',
-    url: 'https://www.zeroum.bet/',
-    roletas: [{ label: 'Roleta', url: 'https://www.zeroum.bet/' }],
-    active: true,
-    note: '🏆 Copa: Promoção de rodadas em https://copazeroum.io/',
-  },
-  {
-    id: 'betnice',
-    name: 'Betnice',
-    url: 'https://betnice.bet/',
-    roletas: [{ label: 'Roleta', url: 'https://betnice.bet/' }],
-    active: true,
+    note: '⚠️ Bônus com condições ruins — jogue por sua conta e risco',
   },
 ];

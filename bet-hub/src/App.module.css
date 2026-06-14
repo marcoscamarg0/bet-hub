@@ -39,20 +39,6 @@
   text-transform: capitalize;
 }
 
-.dateSection {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.previousDayTime {
-  font-size: 11px;
-  color: var(--text3);
-  font-family: var(--mono);
-  letter-spacing: 0.02em;
-}
-
 /* MISSION */
 .mission {
   background: var(--surf);
@@ -217,16 +203,6 @@
   letter-spacing: 0.02em;
 }
 
-.houseNote {
-  font-size: 11px;
-  color: var(--text3);
-  padding: 6px 8px;
-  background: rgba(255, 183, 77, 0.1);
-  border-left: 2px solid var(--amber);
-  border-radius: 4px;
-  margin-top: 4px;
-}
-
 /* ROLETA BUTTONS */
 .roletaList {
   display: flex;
@@ -353,4 +329,203 @@
   opacity: 0.7;
   padding-left: 4px;
   letter-spacing: 0.04em;
+}
+
+/* LOADING */
+.loadingPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+/* TOPBAR RIGHT / USER MENU */
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text1);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminBtn {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,197,24,0.25);
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.adminBtn:hover {
+  background: rgba(245,197,24,0.2);
+}
+
+.logoutBtn {
+  font-size: 13px;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.logoutBtn:hover {
+  color: var(--red);
+  border-color: rgba(240,71,71,0.3);
+}
+
+/* API WARNING */
+.apiWarning {
+  font-size: 12px;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,197,24,0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+/* EARNINGS ROW */
+.earningsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.earningsLabel {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.earningsValue {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* HOUSE NOTE */
+.houseNote {
+  font-size: 11px;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,197,24,0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+/* OVERLAY + AMOUNT MODAL */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.15s ease;
+  padding: 16px;
+}
+
+.amountModal {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.amountTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text1);
+}
+
+.amountSubtitle {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: -8px;
+}
+
+.amountInput {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--text1);
+  font-family: var(--mono);
+  outline: none;
+}
+
+.amountInput:focus {
+  border-color: var(--green);
+}
+
+.amountActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.amountCancel, .amountConfirm {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.amountCancel {
+  background: var(--surf2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.amountCancel:hover {
+  color: var(--text1);
+}
+
+.amountConfirm {
+  background: var(--green);
+  color: #03160a;
+  border: none;
+}
+
+.amountConfirm:hover {
+  background: #1ef59a;
 }

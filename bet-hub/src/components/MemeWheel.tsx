@@ -7,12 +7,10 @@ interface WheelItem {
   color: string;
   textColor: string;
   weight: number;
-  fake?: boolean;
-  redirectTo?: string;
 }
 
 const ITEMS: WheelItem[] = [
-  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 60, fake: true, redirectTo: '4' },
+  { id: '1', label: 'R$ 1.000 💸',       color: '#16a34a', textColor: '#dcfce7', weight: 60 },
   { id: '2', label: 'Tente de novo 🔄',   color: '#1d4ed8', textColor: '#dbeafe', weight: 20 },
   { id: '3', label: 'Quase lá... 😬',     color: '#7c3aed', textColor: '#ede9fe', weight: 12 },
   { id: '4', label: 'Jatada na cara 🤕',  color: '#b91c1c', textColor: '#fee2e2', weight: 8  },
@@ -21,54 +19,32 @@ const ITEMS: WheelItem[] = [
 const SIZE = 340;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
-const R = SIZE / 2 - 8;
+const R  = SIZE / 2 - 8;
 const TWO_PI = Math.PI * 2;
-
-// ── segment layout ───────────────────────────────────────────
-// Segments are laid out starting at angle 0 (right), going clockwise.
-// The pointer is fixed at the TOP (-PI/2). The wheel rotates.
-// A segment is "under the pointer" when the wheel rotation places it at top.
 
 function getSegments(items: WheelItem[]) {
   const total = items.reduce((s, i) => s + i.weight, 0);
   let acc = 0;
   return items.map(item => {
-    const startFrac = acc / total;          // 0..1
-    const span = item.weight / total;       // 0..1
+    const startFrac = acc / total;
+    const span      = item.weight / total;
     acc += item.weight;
     return { item, startFrac, span, midFrac: startFrac + span / 2 };
   });
 }
 
-const SEGMENTS = getSegments(ITEMS);
+const SEGS = getSegments(ITEMS);
 
-// Given current wheel rotation (turns, 0..1), which item is under the pointer?
-// Pointer is at top = -0.25 turns (or 0.75 in mod space).
-// The segment that contains (0.75 - rotation) mod 1 wins.
-function getWinner(rotTurns: number): number {
-  const pointer = ((0.75 - rotTurns) % 1 + 1) % 1; // 0..1 position under pointer
-  for (let i = 0; i < SEGMENTS.length; i++) {
-    const { startFrac, span } = SEGMENTS[i];
-    if (pointer >= startFrac && pointer < startFrac + span) return i;
-  }
-  return 0;
+function rotForIdx(idx: number): number {
+  return ((0.75 - SEGS[idx].midFrac) % 1 + 1) % 1;
 }
 
-// What rotation (turns) puts the CENTER of segment[idx] under the pointer?
-function rotationForIdx(idx: number): number {
-  const { midFrac } = SEGMENTS[idx];
-  // We want pointer = midFrac → (0.75 - rot) mod 1 = midFrac → rot = 0.75 - midFrac
-  return ((0.75 - midFrac) % 1 + 1) % 1;
-}
-
-// ── draw ─────────────────────────────────────────────────────
+// ── draw ────────────────────────────────────────────────────
 function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, SIZE, SIZE);
-
   const rotRad = rotTurns * TWO_PI;
 
-  // shadow
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.6)';
   ctx.shadowBlur = 24;
@@ -78,14 +54,14 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.fill();
   ctx.restore();
 
-  SEGMENTS.forEach(({ item, startFrac, span }) => {
-    const startRad = startFrac * TWO_PI + rotRad;
-    const endRad   = startRad + span * TWO_PI;
-    const midRad   = startRad + (span * TWO_PI) / 2;
+  SEGS.forEach(({ item, startFrac, span }) => {
+    const s = startFrac * TWO_PI + rotRad;
+    const e = s + span * TWO_PI;
+    const m = s + (span * TWO_PI) / 2;
 
     ctx.beginPath();
     ctx.moveTo(CX, CY);
-    ctx.arc(CX, CY, R, startRad, endRad);
+    ctx.arc(CX, CY, R, s, e);
     ctx.closePath();
     ctx.fillStyle = item.color;
     ctx.fill();
@@ -93,10 +69,9 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // text
     ctx.save();
     ctx.translate(CX, CY);
-    ctx.rotate(midRad);
+    ctx.rotate(m);
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = item.textColor;
@@ -113,14 +88,12 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
     ctx.restore();
   });
 
-  // border
   ctx.beginPath();
   ctx.arc(CX, CY, R, 0, TWO_PI);
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // center cap
   const grad = ctx.createRadialGradient(CX - 6, CY - 6, 2, CX, CY, 26);
   grad.addColorStop(0, '#2a3040');
   grad.addColorStop(1, '#0d1117');
@@ -137,7 +110,6 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.fillStyle = '#17d585';
   ctx.fill();
 
-  // pointer at top
   ctx.save();
   ctx.translate(CX, 6);
   ctx.beginPath();
@@ -152,18 +124,64 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
   ctx.restore();
 }
 
-// ── easing ───────────────────────────────────────────────────
-function easeOutCubic(t: number) { return 1 - Math.pow(1 - t, 3); }
-function easeInOutSine(t: number) { return -(Math.cos(Math.PI * t) - 1) / 2; }
+// ── torment easing ──────────────────────────────────────────
+// Builds a custom velocity curve:
+// 1. Fast spin (normal)
+// 2. Slows down approaching R$1000 — suspense!
+// 3. "Almost stops" right on R$1000 (pointer grazes it)
+// 4. Picks up again — "nooo!"
+// 5. Slowly crawls and dies on Jatada
+//
+// We do this by building a piecewise position function in [0,1] → [0, totalTurns]
 
-// ── component ────────────────────────────────────────────────
-type Phase = 'idle' | 'spinning' | 'slow' | 'done';
+function buildCurve(totalTurns: number) {
+  // Phases (fractions of total time):
+  // [0.00–0.45] fast spin, easeNone
+  // [0.45–0.65] decelerate approaching R$1000
+  // [0.65–0.75] AGONIZING near-stop on R$1000 (almost zero velocity)
+  // [0.75–0.85] re-accelerate (cruel bounce)
+  // [0.85–1.00] final decelerate to Jatada
+
+  return (t: number): number => {
+    if (t <= 0.45) {
+      // fast, linear-ish
+      const u = t / 0.45;
+      return totalTurns * 0.30 * u;
+    }
+    if (t <= 0.65) {
+      // decelerate: cubic ease-in (approaching slowly)
+      const u = (t - 0.45) / 0.20;
+      const eased = u * u * u; // slow start of decel
+      return totalTurns * (0.30 + 0.32 * eased);
+    }
+    if (t <= 0.75) {
+      // near-stop — exponential crawl, almost touches R$1000
+      const u = (t - 0.65) / 0.10;
+      const crawl = 1 - Math.pow(1 - u, 4); // very slow
+      return totalTurns * (0.62 + 0.04 * crawl); // barely moves (0.04 turns = ~14°)
+    }
+    if (t <= 0.85) {
+      // cruel re-acceleration
+      const u = (t - 0.75) / 0.10;
+      const accel = u * u;
+      return totalTurns * (0.66 + 0.12 * accel);
+    }
+    // final slowdown to Jatada
+    const u = (t - 0.85) / 0.15;
+    const eased = 1 - Math.pow(1 - u, 3);
+    return totalTurns * (0.78 + 0.22 * eased);
+  };
+}
+
+// ── component ───────────────────────────────────────────────
+type Phase = 'idle' | 'spinning' | 'done';
 
 export function MemeWheel() {
-  const [open, setOpen]     = useState(false);
-  const [phase, setPhase]   = useState<Phase>('idle');
+  const [open, setOpen]         = useState(false);
+  const [phase, setPhase]       = useState<Phase>('idle');
   const [rotTurns, setRotTurns] = useState(0);
-  const [winner, setWinner] = useState<WheelItem | null>(null);
+  const [winner, setWinner]     = useState<WheelItem | null>(null);
+  const [taunt, setTaunt]       = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
   const rotRef    = useRef(0);
@@ -184,71 +202,53 @@ export function MemeWheel() {
   const spin = useCallback(() => {
     if (phase !== 'idle' && phase !== 'done') return;
     setWinner(null);
+    setTaunt('');
     setPhase('spinning');
 
-    // weighted pick
-    const total = ITEMS.reduce((s, i) => s + i.weight, 0);
-    let r = Math.random() * total;
-    let pickedIdx = 0;
-    for (let i = 0; i < ITEMS.length; i++) {
-      r -= ITEMS[i].weight;
-      if (r <= 0) { pickedIdx = i; break; }
-    }
+    // Always land on Jatada (id 4, index 3)
+    const jatadaIdx = ITEMS.findIndex(i => i.id === '4');
+    const landRot   = rotForIdx(jatadaIdx);
+    const curFrac   = ((rotRef.current % 1) + 1) % 1;
+    const diff      = ((landRot - curFrac) + 1) % 1;
 
-    const picked = ITEMS[pickedIdx];
-    const landRot = rotationForIdx(pickedIdx); // 0..1 fractional turns
-    // Add 6–9 full spins on top of landing rotation
-    const spins = 6 + Math.floor(Math.random() * 4);
-    const curFrac = ((rotRef.current % 1) + 1) % 1;
-    const diff = ((landRot - curFrac) + 1) % 1; // how much to turn to reach landing
-    const targetTurns = rotRef.current + spins + diff;
+    // R$1000 is index 0 — calculate where it sits relative to Jatada
+    // so the "near stop" phase grazes over R$1000 before escaping to Jatada
+    // We do 8 full spins; the curve handles the drama
+    const spins      = 8;
+    const totalTurns = spins + diff;
+    const curve      = buildCurve(totalTurns);
 
-    const startTurns = rotRef.current;
-    const duration = 4500;
-    const t0 = performance.now();
+    const startRot = rotRef.current;
+    const duration = 8000;
+    const t0       = performance.now();
+
+    // taunt messages timed to phases
+    const taunts: [number, string][] = [
+      [0.60, '😲 R$ 1.000!!!'],
+      [0.68, '🤑 VAI GANHAR!!'],
+      [0.72, '😱 QUASE!!!'],
+      [0.76, '💀 NÃO!!!'],
+      [0.90, 'kkkkkkkkkkk'],
+    ];
+    let tauntIdx = 0;
 
     cancelAnimationFrame(rafRef.current);
 
     const animate = (now: number) => {
       const t = Math.min((now - t0) / duration, 1);
-      setRot(startTurns + (targetTurns - startTurns) * easeOutCubic(t));
+
+      // fire taunts
+      while (tauntIdx < taunts.length && t >= taunts[tauntIdx][0]) {
+        setTaunt(taunts[tauntIdx][1]);
+        tauntIdx++;
+      }
+
+      setRot(startRot + curve(t));
 
       if (t < 1) { rafRef.current = requestAnimationFrame(animate); return; }
 
-      // verify winner (sanity check)
-      const actualIdx = getWinner(rotRef.current);
-
-      if (picked.fake && picked.redirectTo) {
-        // slow spin to real target
-        setPhase('slow');
-
-        const realIdx = ITEMS.findIndex(i => i.id === picked.redirectTo);
-        const realLand = rotationForIdx(realIdx);
-        const slowStart = rotRef.current;
-        const slowCurFrac = ((slowStart % 1) + 1) % 1;
-        const slowDiff = ((realLand - slowCurFrac) + 1) % 1;
-        // one gentle spin + diff, minimum 0.3 turns so it visibly moves
-        const slowExtra = slowDiff < 0.1 ? 1 + slowDiff : slowDiff;
-        const slowTarget = slowStart + slowExtra;
-        const slowDur = 3500;
-        const t1 = performance.now();
-
-        const slowAnim = (now: number) => {
-          const st = Math.min((now - t1) / slowDur, 1);
-          setRot(slowStart + (slowTarget - slowStart) * easeInOutSine(st));
-
-          if (st < 1) { rafRef.current = requestAnimationFrame(slowAnim); return; }
-
-          const realItem = ITEMS[realIdx];
-          setWinner(realItem);
-          setPhase('done');
-        };
-
-        rafRef.current = requestAnimationFrame(slowAnim);
-      } else {
-        setWinner(ITEMS[actualIdx]);
-        setPhase('done');
-      }
+      setWinner(ITEMS[jatadaIdx]);
+      setPhase('done');
     };
 
     rafRef.current = requestAnimationFrame(animate);
@@ -258,19 +258,19 @@ export function MemeWheel() {
     cancelAnimationFrame(rafRef.current);
     setPhase('idle');
     setWinner(null);
+    setTaunt('');
   }, []);
 
-  const isSpinning = phase === 'spinning' || phase === 'slow';
+  const isSpinning = phase === 'spinning';
 
   const btnLabel =
-    phase === 'spinning' ? 'Girando...' :
-    phase === 'slow'     ? 'Devagar...' :
-    phase === 'done'     ? 'Girar de novo' :
+    isSpinning       ? 'Girando...' :
+    phase === 'done' ? 'Tentar de novo 😭' :
     'Girar';
 
   if (!open) {
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Roleta SORTUDA">
+      <button className={styles.fab} onClick={() => setOpen(true)} title="Roleta meme">
         🎡
       </button>
     );
@@ -280,13 +280,17 @@ export function MemeWheel() {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <span className={styles.modalTitle}>Roleta SORTUDA</span>
+          <span className={styles.modalTitle}>Roleta Meme</span>
           <button className={styles.closeBtn} onClick={() => { reset(); setOpen(false); }}>✕</button>
         </div>
 
         <div className={styles.canvasWrap}>
           <canvas ref={canvasRef} width={SIZE} height={SIZE} className={styles.canvas} />
         </div>
+
+        {taunt && (
+          <div key={taunt} className={styles.taunt}>{taunt}</div>
+        )}
 
         <div className={styles.legend}>
           {ITEMS.map(item => (
@@ -310,7 +314,7 @@ export function MemeWheel() {
             className={styles.winnerBox}
             style={{ borderColor: winner.color + '66', background: winner.color + '18' }}
           >
-            <span className={styles.winnerIcon}>🏆</span>
+            <span className={styles.winnerIcon}>💀</span>
             <span className={styles.winnerText} style={{ color: winner.textColor }}>
               {winner.label}
             </span>

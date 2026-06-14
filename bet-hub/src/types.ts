@@ -9,4 +9,5 @@ export interface House {
   url: string;
   roletas: Roleta[];
   active: boolean;
+  note?: string;
 }
