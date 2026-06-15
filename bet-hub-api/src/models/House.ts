@@ -6,13 +6,15 @@ export interface IRoleta {
 }
 
 export interface IHouse extends Document {
-  id: string;        // slug usado pelo frontend (ex: 'lotogreen')
+  id: string;
   name: string;
   url: string;
   roletas: IRoleta[];
   active: boolean;
   note?: string;
-  order: number;     // posição na lista
+  order: number;
+  gorjeta: boolean;
+  deposito: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,7 +27,6 @@ const roletaSchema = new Schema<IRoleta>(
   { _id: false }
 );
 
-// Use Schema<IHouse> (e não inference genérica) para garantir que TS aceite os campos gorjeta/deposito
 const houseSchema = new Schema<IHouse> (
   {
     id: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
@@ -35,17 +36,11 @@ const houseSchema = new Schema<IHouse> (
     active: { type: Boolean, default: true },
     note: { type: String },
     order: { type: Number, default: 0 },
-
-    // Flags para filtrar nas abas do front
     gorjeta: { type: Boolean, default: false },
     deposito: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-
 export const House: Model<IHouse> =
   mongoose.models.House || mongoose.model<IHouse>('House', houseSchema);
-
-
-
