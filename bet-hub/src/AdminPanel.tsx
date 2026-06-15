@@ -10,7 +10,8 @@ function fmtDateTime(iso: string | null) {
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-type Tab = 'houses' | 'earnings';
+type Tab = 'houses' | 'earnings' | 'bonuses';
+
 
 export function AdminPanel({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>('houses');
