@@ -5,6 +5,12 @@ import { useAuth } from './AuthContext';
 import { LoginScreen } from './Login';
 import { AdminPanel } from './AdminPanel';
 import { MemeWheel } from './components/MemeWheel';
+import { MinesGame } from './components/Mines';
+// (Sem changes visuais por enquanto)
+
+
+
+
 
 // ── Helpers ──────────────────────────────────────────────────
 function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
@@ -20,8 +26,9 @@ function fmtMoney(n: number) {
 type Filter = 'todas' | 'pendentes' | 'gorjetas' | 'deposite';
 
 // Tags “Gorjeta”/“Deposite” agora serão controladas pelo Admin via dados do backend.
-// Removemos as tags fixas do código para que não existam casas aparecendo nessas abas sem cadastro.
+// (No dashboard principal, "Gorjetas" será isolado em uma aba separada.)
 const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {};
+
 
 function msUntilMidnight() {
   const now = new Date();
@@ -45,6 +52,7 @@ function fallbackHouses(): ApiHouse[] {
 
 // ── Main Dashboard ──────────────────────────────────────────
 function Dashboard() {
+
   const { user, logout } = useAuth();
 
   const [houses, setHouses] = useState<ApiHouse[] | null>(null);
@@ -147,12 +155,21 @@ function Dashboard() {
 
   const gorjetaCount = activeHouses.filter((h) => Boolean((h as any).gorjeta)).length;
   const depositeCount = activeHouses.filter((h) => Boolean((h as any).deposito)).length;
+
+  const isGorjetaHouse = (h: ApiHouse) => Boolean((h as any).gorjeta);
+
   const displayed = activeHouses.filter((h) => {
+    // Aba principal ignora gorjetas (regra #1)
+    if (filter === 'todas' || filter === 'pendentes') {
+      if (isGorjetaHouse(h)) return false;
+    }
+
     if (filter === 'pendentes') return h.roletas.some((_, i) => !checked[rk(h.id, i)]);
-    if (filter === 'gorjetas') return Boolean((h as any).gorjeta);
+    if (filter === 'gorjetas') return isGorjetaHouse(h);
     if (filter === 'deposite') return Boolean((h as any).deposito);
     return true;
   });
+
 
 
   const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -463,6 +480,8 @@ function Dashboard() {
       </footer>
 
       <MemeWheel />
+      <MinesGame />
+
 
       {/* AMOUNT MODAL */}
       {amountModal && (

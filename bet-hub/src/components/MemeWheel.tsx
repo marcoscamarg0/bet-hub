@@ -123,31 +123,14 @@ function drawWheel(canvas: HTMLCanvasElement, rotTurns: number) {
 }
 
 function buildCurve(totalTurns: number) {
+  // Curva suave em fases, desacelerando mais no final
   return (t: number): number => {
-    if (t <= 0.45) {
-      const u = t / 0.45;
-      return totalTurns * 0.30 * u;
-    }
-    if (t <= 0.65) {
-      const u = (t - 0.45) / 0.20;
-      const eased = u * u * u;
-      return totalTurns * (0.30 + 0.32 * eased);
-    }
-    if (t <= 0.75) {
-      const u = (t - 0.65) / 0.10;
-      const crawl = 1 - Math.pow(1 - u, 4);
-      return totalTurns * (0.62 + 0.04 * crawl);
-    }
-    if (t <= 0.85) {
-      const u = (t - 0.75) / 0.10;
-      const accel = u * u;
-      return totalTurns * (0.66 + 0.12 * accel);
-    }
-    const u = (t - 0.85) / 0.15;
-    const eased = 1 - Math.pow(1 - u, 3);
-    return totalTurns * (0.78 + 0.22 * eased);
+    // easeOutQuint simplificado
+    const x = 1 - Math.pow(1 - t, 5);
+    return totalTurns * x;
   };
 }
+
 
 type Phase = 'idle' | 'spinning' | 'done';
 
@@ -180,8 +163,17 @@ export function MemeWheel() {
     setTaunt('');
     setPhase('spinning');
 
-    const jatadaIdx = ITEMS.findIndex(i => i.id === '4');
-    const landRot = rotForIdx(jatadaIdx);
+    // Winner aleatório por peso (weight)
+    const totalW = ITEMS.reduce((s, it) => s + it.weight, 0);
+    let roll = Math.random() * totalW;
+    let winnerIdx = 0;
+    for (let i = 0; i < ITEMS.length; i++) {
+      roll -= ITEMS[i].weight;
+      if (roll <= 0) { winnerIdx = i; break; }
+    }
+
+    const landRot = rotForIdx(winnerIdx);
+
     const curFrac = ((rotRef.current % 1) + 1) % 1;
     const diff = ((landRot - curFrac) + 1) % 1;
     const spins = 8;
@@ -210,8 +202,9 @@ export function MemeWheel() {
       }
       setRot(startRot + curve(t));
       if (t < 1) { rafRef.current = requestAnimationFrame(animate); return; }
-      setWinner(ITEMS[jatadaIdx]);
+      setWinner(ITEMS[winnerIdx]);
       setPhase('done');
+
     };
 
     rafRef.current = requestAnimationFrame(animate);
