@@ -20,7 +20,19 @@ function fmtMoney(n: number) {
 
 type Tab = 'roletas' | 'gorjetas' | 'deposite';
 
-const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {};
+type BonusLink = {
+  gorjeta?: string;
+  deposite?: string;
+};
+
+// Links manuais (sem depender do Admin/Backend).
+// Use o id da casa (house.id) como chave.
+const bonusLinks: Record<string, BonusLink> = {
+  lottu: {
+    gorjeta: 'https://lottu-steluto.gorjeta.net/publico',
+  },
+};
+
 
 function msUntilMidnight() {
   const now = new Date();
@@ -405,8 +417,9 @@ function Dashboard() {
           {currentHouses.map((house, hi) => {
             const houseDone = house.roletas.every((_, i) => !!checked[rk(house.id, i)]);
             const hasDouble = house.roletas.length > 1;
-            const tags = bonusTags[house.id];
-            const tabColor = activeTab === 'gorjetas' ? '#f59e0b'
+                    const tags = bonusLinks[house.id];
+                    const tabColor = activeTab === 'gorjetas' ? '#f59e0b'
+
               : activeTab === 'deposite' ? '#22d3ee' : '#8b5cf6';
 
             return (
