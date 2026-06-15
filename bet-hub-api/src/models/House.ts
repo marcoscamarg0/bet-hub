@@ -25,7 +25,8 @@ const roletaSchema = new Schema<IRoleta>(
   { _id: false }
 );
 
-const houseSchema = new Schema<IHouse>(
+// Use Schema<IHouse> (e não inference genérica) para garantir que TS aceite os campos gorjeta/deposito
+const houseSchema = new Schema<IHouse> (
   {
     id: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     name: { type: String, required: true, trim: true },
@@ -38,10 +39,10 @@ const houseSchema = new Schema<IHouse>(
     // Flags para filtrar nas abas do front
     gorjeta: { type: Boolean, default: false },
     deposito: { type: Boolean, default: false },
-
   },
   { timestamps: true }
 );
+
 
 export const House: Model<IHouse> =
   mongoose.models.House || mongoose.model<IHouse>('House', houseSchema);
