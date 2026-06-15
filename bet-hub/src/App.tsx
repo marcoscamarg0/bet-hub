@@ -120,8 +120,8 @@ function Dashboard() {
   }, []);
 
   const activeHouses = (houses ?? []).filter(h => h.active);
-  const isGorjetaHouse = (h: ApiHouse) => Boolean((h as any).gorjeta);
-  const isDepositeHouse = (h: ApiHouse) => Boolean((h as any).deposito);
+  const isGorjetaHouse = (h: ApiHouse) => Boolean(h.gorjeta);
+  const isDepositeHouse = (h: ApiHouse) => Boolean(h.deposito);
 
   // Roletas tab: excludes gorjeta houses
   const roletaHouses = activeHouses.filter(h => !isGorjetaHouse(h) && !isDepositeHouse(h));

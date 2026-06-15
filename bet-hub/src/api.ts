@@ -1,6 +1,11 @@
 // ============================================================
-//  ✏️  Configure a URL da sua API aqui (ou via variável de ambiente VITE_API_URL)
+//  API Client — BetHub Frontend
+//  Configure VITE_API_URL no arquivo .env do projeto:
+//    VITE_API_URL=https://sua-api.onrender.com
+//  Para dev local:
+//    VITE_API_URL=http://localhost:4000
 // ============================================================
+
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const TOKEN_KEY = 'bh_token';
@@ -61,6 +66,8 @@ export interface ApiHouse {
   active: boolean;
   note?: string;
   order: number;
+  gorjeta?: boolean;
+  deposito?: boolean;
 }
 
 export interface ApiUser {

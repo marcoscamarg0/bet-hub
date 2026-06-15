@@ -301,7 +301,7 @@ export function MemeWheel() {
       <button
         onClick={() => setOpen(true)}
         title="Roleta meme"
-        className="fixed bottom-20 right-4 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-2xl transition-all hover:scale-110 z-20"
+        className="fixed bottom-16 right-4 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-2xl transition-all hover:scale-110 z-20"
         style={{
           background: 'linear-gradient(135deg, #7c3aed, #06b6d4)',
           boxShadow: '0 8px 32px rgba(139,92,246,0.5)'
