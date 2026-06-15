@@ -5,9 +5,70 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BetHub — Minhas Casas de Apostas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['Syne', 'sans-serif'],
+              body: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50:  '#f0f0ff',
+                100: '#e0e0ff',
+                400: '#a78bfa',
+                500: '#8b5cf6',
+                600: '#7c3aed',
+                700: '#6d28d9',
+              },
+              cyan: {
+                400: '#22d3ee',
+                500: '#06b6d4',
+              },
+              surface: {
+                900: '#070b14',
+                800: '#0d1321',
+                700: '#111827',
+                600: '#1a2035',
+                500: '#243050',
+              },
+              emerald: {
+                400: '#34d399',
+                500: '#10b981',
+              },
+            },
+            backgroundImage: {
+              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            },
+            animation: {
+              'fade-up': 'fadeUp 0.4s ease both',
+              'pulse-slow': 'pulse 3s ease infinite',
+            },
+            keyframes: {
+              fadeUp: {
+                from: { opacity: 0, transform: 'translateY(12px)' },
+                to:   { opacity: 1, transform: 'translateY(0)' },
+              },
+            },
+          },
+        },
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      body { background: #070b14; color: white; font-family: 'Inter', sans-serif; }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 4px; }
+      @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+      .anim-fade-up { animation: fadeUp 0.35s ease both; }
+      @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+      .shimmer-bar { background: linear-gradient(90deg, #8b5cf622 0%, #8b5cf655 50%, #8b5cf622 100%); background-size: 200% 100%; animation: shimmer 2s linear infinite; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
