@@ -9,7 +9,7 @@ interface WheelItem {
 }
 
 const ITEMS: WheelItem[] = [
-  { id: '1', label: 'R$ 1.000 💸',       color: '#15803d', textColor: '#dcfce7', weight: 60 },
+  { id: '1', label: 'R$ 1.000 💸',       color: '#15803d', textColor: '#dcfce7', weight: 0 },
   { id: '2', label: 'Tente de novo 🔄',   color: '#1d4ed8', textColor: '#dbeafe', weight: 20 },
   { id: '3', label: 'Quase lá... 😬',     color: '#6d28d9', textColor: '#ede9fe', weight: 12 },
   { id: '4', label: 'Jatada na cara 🤕',  color: '#991b1b', textColor: '#fee2e2', weight: 8  },

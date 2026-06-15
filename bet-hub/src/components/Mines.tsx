@@ -321,7 +321,7 @@ export function MinesGame() {
               <div className={styles.lbEmpty}>Nenhum ganho ainda.<br />Seja o primeiro!</div>
             ) : (
               <div className={styles.lbList}>
-                {lb.slice(0, 15).map((entry, i) => (
+                {lb.map((entry, i) => (
                   <div key={i} className={styles.lbEntry}>
                     <span className={styles.lbRank}>{i + 1}</span>
                     <div className={styles.lbAvatar}>{initials(entry.name)}</div>
