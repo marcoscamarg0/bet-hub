@@ -6,11 +6,6 @@ import { LoginScreen } from './Login';
 import { AdminPanel } from './AdminPanel';
 import { MemeWheel } from './components/MemeWheel';
 import { MinesGame } from './components/Mines';
-// (Sem changes visuais por enquanto)
-
-
-
-
 
 // ── Helpers ──────────────────────────────────────────────────
 function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
@@ -23,12 +18,9 @@ function fmtMoney(n: number) {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-type Filter = 'todas' | 'pendentes' | 'gorjetas' | 'deposite';
+type Tab = 'roletas' | 'gorjetas' | 'deposite';
 
-// Tags “Gorjeta”/“Deposite” agora serão controladas pelo Admin via dados do backend.
-// (No dashboard principal, "Gorjetas" será isolado em uma aba separada.)
 const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {};
-
 
 function msUntilMidnight() {
   const now = new Date();
@@ -39,20 +31,36 @@ function msUntilMidnight() {
 
 function fallbackHouses(): ApiHouse[] {
   return localHouses.map((h, i) => ({
-    _id: h.id,
-    id: h.id,
-    name: h.name,
-    url: h.url,
-    roletas: h.roletas,
-    active: h.active,
-    note: h.note,
-    order: i,
+    _id: h.id, id: h.id, name: h.name, url: h.url,
+    roletas: h.roletas, active: h.active, note: h.note, order: i,
   }));
+}
+
+// ── Tab icons ─────────────────────────────────────────────────
+function IconRoleta() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+function IconGorjeta() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+  );
+}
+function IconDeposite() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+    </svg>
+  );
 }
 
 // ── Main Dashboard ──────────────────────────────────────────
 function Dashboard() {
-
   const { user, logout } = useAuth();
 
   const [houses, setHouses] = useState<ApiHouse[] | null>(null);
@@ -61,7 +69,7 @@ function Dashboard() {
   const [gorjetas, setGorjetas] = useState(0);
   const [depositos, setDepositos] = useState(0);
   const [ganhos, setGanhos] = useState(0);
-  const [filter, setFilter] = useState<Filter>('todas');
+  const [activeTab, setActiveTab] = useState<Tab>('roletas');
   const [showAdmin, setShowAdmin] = useState(false);
   const [amountModal, setAmountModal] = useState<{ houseId: string; idx: number; label: string } | null>(null);
   const [amountInput, setAmountInput] = useState('');
@@ -112,10 +120,21 @@ function Dashboard() {
   }, []);
 
   const activeHouses = (houses ?? []).filter(h => h.active);
-  const totalRoletas = activeHouses.reduce((s, h) => s + h.roletas.length, 0);
-  const doneCount = Object.keys(checked).length;
+  const isGorjetaHouse = (h: ApiHouse) => Boolean((h as any).gorjeta);
+  const isDepositeHouse = (h: ApiHouse) => Boolean((h as any).deposito);
+
+  // Roletas tab: excludes gorjeta houses
+  const roletaHouses = activeHouses.filter(h => !isGorjetaHouse(h) && !isDepositeHouse(h));
+  const gorjetaHouses = activeHouses.filter(isGorjetaHouse);
+  const depositeHouses = activeHouses.filter(isDepositeHouse);
+
+  const totalRoletas = roletaHouses.reduce((s, h) => s + h.roletas.length, 0);
+  const doneCount = roletaHouses.reduce((s, h) => s + h.roletas.filter((_, i) => !!checked[rk(h.id, i)]).length, 0);
   const pct = totalRoletas > 0 ? Math.round((doneCount / totalRoletas) * 100) : 0;
   const allDone = doneCount >= totalRoletas && totalRoletas > 0;
+
+  const pendingCount = roletaHouses.reduce((s, h) =>
+    s + h.roletas.filter((_, i) => !checked[rk(h.id, i)]).length, 0);
 
   const openAmountModal = useCallback((houseId: string, idx: number, label: string) => {
     setAmountInput('');
@@ -153,33 +172,25 @@ function Dashboard() {
     });
   }, []);
 
-  const gorjetaCount = activeHouses.filter((h) => Boolean((h as any).gorjeta)).length;
-  const depositeCount = activeHouses.filter((h) => Boolean((h as any).deposito)).length;
+  const totalManual = gorjetas + depositos + ganhos;
+  const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
 
-  const isGorjetaHouse = (h: ApiHouse) => Boolean((h as any).gorjeta);
+  const tabs: { id: Tab; label: string; count: number; icon: JSX.Element; color: string }[] = [
+    { id: 'roletas',  label: 'Roletas',  count: pendingCount, icon: <IconRoleta />,  color: '#8b5cf6' },
+    { id: 'gorjetas', label: 'Gorjetas', count: gorjetaHouses.length, icon: <IconGorjeta />, color: '#f59e0b' },
+    { id: 'deposite', label: 'Deposite', count: depositeHouses.length, icon: <IconDeposite />, color: '#22d3ee' },
+  ];
 
-  const displayed = activeHouses.filter((h) => {
-    // Aba principal ignora gorjetas (regra #1)
-    if (filter === 'todas' || filter === 'pendentes') {
-      if (isGorjetaHouse(h)) return false;
-    }
-
-    if (filter === 'pendentes') return h.roletas.some((_, i) => !checked[rk(h.id, i)]);
-    if (filter === 'gorjetas') return isGorjetaHouse(h);
-    if (filter === 'deposite') return Boolean((h as any).deposito);
-    return true;
-  });
-
-
-
-  const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const currentHouses = activeTab === 'roletas' ? roletaHouses
+    : activeTab === 'gorjetas' ? gorjetaHouses
+    : depositeHouses;
 
   if (houses === null) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background:'#070b14'}}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
-          <span className="text-slate-400 text-sm">Carregando...</span>
+          <span className="text-slate-500 text-sm">Carregando...</span>
         </div>
       </div>
     );
@@ -189,143 +200,153 @@ function Dashboard() {
     return <AdminPanel onBack={() => setShowAdmin(false)} />;
   }
 
-  const totalManual = gorjetas + depositos + ganhos;
-
   return (
     <div className="min-h-screen" style={{
-      background: 'radial-gradient(ellipse at top left, #7c3aed22 0%, transparent 40%), radial-gradient(ellipse at bottom right, #06b6d422 0%, transparent 40%), #070b14'
+      background: 'radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124,58,237,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 110%, rgba(6,182,212,0.12) 0%, transparent 60%), #060a12'
     }}>
 
       {/* TOP BAR */}
-      <header className="sticky top-0 z-30 border-b border-white/[0.06]" style={{background:'rgba(7,11,20,0.85)', backdropFilter:'blur(20px)'}}>
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-500/30 flex-shrink-0">
+      <header className="sticky top-0 z-30" style={{
+        background: 'rgba(6,10,18,0.88)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.055)'
+      }}>
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-lg"
+              style={{background:'linear-gradient(135deg, #7c3aed, #06b6d4)', boxShadow:'0 0 16px rgba(139,92,246,0.35)'}}>
               <span className="text-white font-bold text-xs" style={{fontFamily:'Syne,sans-serif'}}>B</span>
             </div>
-            <span className="font-bold text-white text-lg tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>BetHub</span>
+            <span className="font-bold text-white text-base tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>BetHub</span>
           </div>
 
+          {/* Right side */}
           <div className="flex items-center gap-2">
-            <span className="hidden sm:block text-slate-500 text-xs capitalize">{dateStr}</span>
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="text-slate-300 text-sm font-medium">{user?.username || user?.name}</span>
-              {user?.role === 'admin' && (
-                <button onClick={() => setShowAdmin(true)}
-                  className="px-2.5 py-1 rounded-lg text-xs font-semibold text-violet-300 transition-colors hover:text-violet-200"
-                  style={{background:'rgba(139,92,246,0.15)', border:'1px solid rgba(139,92,246,0.3)'}}>
-                  Admin
-                </button>
-              )}
-              <button onClick={logout} title="Sair"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors"
-                style={{background:'rgba(255,255,255,0.05)'}}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
+            <span className="hidden sm:block text-slate-600 text-xs capitalize">{dateStr}</span>
+            <span className="text-slate-300 text-sm font-medium">{user?.username || user?.name}</span>
+            {user?.role === 'admin' && (
+              <button onClick={() => setShowAdmin(true)}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                style={{background:'rgba(139,92,246,0.12)', color:'#a78bfa', border:'1px solid rgba(139,92,246,0.25)'}}>
+                Admin
               </button>
-            </div>
+            )}
+            <button onClick={logout} title="Sair"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors"
+              style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.05)'}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
       {apiError && (
         <div className="max-w-2xl mx-auto px-4 pt-3">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-amber-400 text-sm border border-amber-500/20"
-            style={{background:'rgba(245,158,11,0.08)'}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-amber-400/90 text-xs border"
+            style={{background:'rgba(245,158,11,0.07)', borderColor:'rgba(245,158,11,0.15)'}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
             Modo offline — progresso não será salvo
           </div>
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 pb-24 pt-4 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 pb-28 pt-4 space-y-4">
 
-        {/* MISSION CARD */}
-        <div className="rounded-2xl p-5 border border-white/[0.07] relative overflow-hidden"
-          style={{background:'rgba(13,19,33,0.8)', backdropFilter:'blur(20px)'}}>
-          {/* subtle glow behind */}
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full blur-2xl pointer-events-none"
-            style={{background: allDone ? 'rgba(52,211,153,0.12)' : 'rgba(139,92,246,0.12)'}} />
+        {/* STATS CARD */}
+        <div className="rounded-2xl p-5 relative overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.028)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            backdropFilter: 'blur(20px)',
+          }}>
+          {/* glow */}
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-60"
+            style={{background: allDone ? 'rgba(52,211,153,0.1)' : 'rgba(139,92,246,0.1)'}} />
 
-          <div className="flex items-start justify-between mb-4 relative">
+          <div className="flex items-center justify-between mb-5 relative">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-1"
-                style={{color: allDone ? '#34d399' : '#8b5cf6'}}>
-                {allDone ? '✦ Missão completa!' : 'Roletas do dia'}
+              <div className="text-xs font-semibold uppercase tracking-widest mb-1.5"
+                style={{color: allDone ? '#34d399' : '#8b5cf6', letterSpacing:'0.08em'}}>
+                {allDone ? '✦ Missão completa' : 'Roletas do dia'}
               </div>
-              <div className="text-3xl font-bold text-white" style={{fontFamily:'Syne,sans-serif'}}>
-                {doneCount}
-                <span className="text-slate-500 font-normal text-xl"> / {totalRoletas}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-4xl font-bold text-white" style={{fontFamily:'Syne,sans-serif'}}>{doneCount}</span>
+                <span className="text-slate-600 text-lg font-medium">/ {totalRoletas}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-slate-500 mb-1">Ganho hoje</div>
-              <div className="text-xl font-bold" style={{fontFamily:'Syne,sans-serif', color: totalGanhoHoje > 0 ? '#34d399' : '#fff'}}>
+              <div className="text-xs text-slate-600 mb-1 uppercase tracking-wide" style={{fontSize:'0.65rem'}}>Ganho hoje</div>
+              <div className="font-bold text-xl" style={{
+                fontFamily:'Syne,sans-serif',
+                color: totalGanhoHoje > 0 ? '#34d399' : '#cbd5e1'
+              }}>
                 {fmtMoney(totalGanhoHoje)}
               </div>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="h-1.5 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
+          <div className="h-1 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
             <div className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${pct}%`,
                 background: allDone
                   ? 'linear-gradient(90deg, #34d399, #10b981)'
                   : 'linear-gradient(90deg, #7c3aed, #06b6d4)',
-                boxShadow: allDone ? '0 0 12px rgba(52,211,153,0.5)' : '0 0 12px rgba(139,92,246,0.5)'
+                boxShadow: allDone ? '0 0 8px rgba(52,211,153,0.6)' : '0 0 8px rgba(139,92,246,0.6)'
               }} />
           </div>
-          <div className="text-right text-xs text-slate-500 mt-1.5">{pct}%</div>
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-slate-700">{pendingCount} pendentes</span>
+            <span className="text-xs font-semibold" style={{color: allDone ? '#34d399' : '#6b7280'}}>{pct}%</span>
+          </div>
         </div>
 
-        {/* MANUAL CARDS */}
+        {/* MANUAL COUNTER CARDS */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { key: 'gorjeta' as const, label: 'Gorjetas', icon: '💰', value: gorjetas, setter: setGorjetas, color: '#a78bfa' },
-            { key: 'deposito' as const, label: 'Depósitos', icon: '🏦', value: depositos, setter: setDepositos, color: '#22d3ee' },
-            { key: 'ganho' as const, label: 'Extras', icon: '🎁', value: ganhos, setter: setGanhos, color: '#34d399' },
+            { key: 'gorjeta' as const, label: 'Gorjetas', emoji: '💰', value: gorjetas, setter: setGorjetas, accent: '#a78bfa' },
+            { key: 'deposito' as const, label: 'Depósitos', emoji: '🏦', value: depositos, setter: setDepositos, accent: '#22d3ee' },
+            { key: 'ganho' as const, label: 'Extras', emoji: '🎁', value: ganhos, setter: setGanhos, accent: '#34d399' },
           ].map(card => (
-            <div key={card.key} className="rounded-xl p-3 border border-white/[0.07] flex flex-col gap-2"
-              style={{background:'rgba(13,19,33,0.8)'}}>
+            <div key={card.key} className="rounded-xl p-3 flex flex-col gap-2"
+              style={{
+                background:'rgba(255,255,255,0.025)',
+                border:'1px solid rgba(255,255,255,0.06)'
+              }}>
               <div className="flex items-center justify-between">
-                <span className="text-lg">{card.icon}</span>
-                <span className="text-xs font-medium" style={{color: card.color}}>{fmtMoney(card.value)}</span>
+                <span className="text-base">{card.emoji}</span>
+                <span className="text-xs font-bold" style={{color:card.accent}}>{fmtMoney(card.value)}</span>
               </div>
-              <div className="text-xs text-slate-500">{card.label}</div>
+              <div className="text-xs font-medium" style={{color:'#4b5563'}}>{card.label}</div>
               <div className="flex gap-1">
                 <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  min="0"
-                  placeholder="0,00"
+                  type="number" inputMode="decimal" step="0.01" min="0" placeholder="0,00"
                   value={manualAmountType === card.key ? manualAmountInput : ''}
                   onChange={e => { setManualAmountType(card.key); setManualAmountInput(e.target.value); }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && manualAmountInput) {
                       const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
                       card.setter(prev => prev + amount);
-                      setManualAmountInput('');
-                      setManualAmountType(null);
+                      setManualAmountInput(''); setManualAmountType(null);
                     }
                   }}
-                  className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-xs text-white placeholder-slate-600 outline-none border"
-                  style={{background:'rgba(255,255,255,0.04)', borderColor:'rgba(255,255,255,0.08)'}}
+                  className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-xs text-white placeholder-slate-700 outline-none"
+                  style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', fontFamily:'Inter,sans-serif'}}
                 />
                 <button
                   onClick={() => {
                     const amount = parseFloat(manualAmountInput.replace(',', '.')) || 0;
                     if (amount > 0) {
                       card.setter(prev => prev + amount);
-                      setManualAmountInput('');
-                      setManualAmountType(null);
+                      setManualAmountInput(''); setManualAmountType(null);
                     }
                   }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 transition-all hover:scale-105"
-                  style={{background:`linear-gradient(135deg, ${card.color}99, ${card.color}55)`}}>
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 transition-all hover:opacity-80"
+                  style={{background:`${card.accent}33`, border:`1px solid ${card.accent}44`}}>
                   +
                 </button>
               </div>
@@ -334,96 +355,116 @@ function Dashboard() {
         </div>
 
         {totalManual > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.05]"
-            style={{background:'rgba(255,255,255,0.03)'}}>
-            <span className="text-xs text-slate-500">Total manual acumulado</span>
-            <span className="text-sm font-semibold text-emerald-400">{fmtMoney(totalManual)}</span>
+          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl"
+            style={{background:'rgba(52,211,153,0.05)', border:'1px solid rgba(52,211,153,0.1)'}}>
+            <span className="text-xs text-slate-600">Total manual</span>
+            <span className="text-sm font-bold text-emerald-400">{fmtMoney(totalManual)}</span>
           </div>
         )}
 
-        {/* FILTERS */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          {[
-            { id: 'todas' as Filter, label: 'Todas', count: activeHouses.length },
-            { id: 'pendentes' as Filter, label: 'Pendentes', count: totalRoletas - doneCount },
-            { id: 'gorjetas' as Filter, label: 'Gorjetas', count: gorjetaCount },
-            { id: 'deposite' as Filter, label: 'Deposite e ganhe', count: depositeCount },
-          ].map(f => (
-            <button key={f.id} onClick={() => setFilter(f.id)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
-              style={filter === f.id
-                ? {background:'rgba(139,92,246,0.2)', color:'#a78bfa', border:'1px solid rgba(139,92,246,0.4)'}
-                : {background:'rgba(255,255,255,0.04)', color:'#64748b', border:'1px solid rgba(255,255,255,0.06)'}}>
-              {f.label}
-              <span className="px-1.5 py-0.5 rounded-md text-xs"
-                style={{background: filter === f.id ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)', color: filter === f.id ? '#c4b5fd' : '#475569'}}>
-                {f.count}
-              </span>
-            </button>
-          ))}
+        {/* TABS */}
+        <div className="flex gap-1 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.055)'}}>
+          {tabs.map(tab => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all duration-200"
+                style={active
+                  ? { background: `${tab.color}18`, color: tab.color, border: `1px solid ${tab.color}30` }
+                  : { background: 'transparent', color: '#4b5563', border: '1px solid transparent' }}>
+                <span style={{opacity: active ? 1 : 0.6}}>{tab.icon}</span>
+                <span>{tab.label}</span>
+                {tab.count > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-md text-xs font-bold"
+                    style={{
+                      background: active ? `${tab.color}25` : 'rgba(255,255,255,0.06)',
+                      color: active ? tab.color : '#374151',
+                      fontSize: '0.6rem'
+                    }}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Tab description for gorjetas */}
+        {activeTab === 'gorjetas' && (
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-amber-400/80 text-xs"
+            style={{background:'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.12)'}}>
+            <span>💰</span>
+            <span>Casas com gorjetas disponíveis — clique para acessar e coletar</span>
+          </div>
+        )}
 
         {/* HOUSES LIST */}
         <div className="space-y-2">
-          {displayed.map((house, hi) => {
+          {currentHouses.map((house, hi) => {
             const houseDone = house.roletas.every((_, i) => !!checked[rk(house.id, i)]);
             const hasDouble = house.roletas.length > 1;
             const tags = bonusTags[house.id];
+            const tabColor = activeTab === 'gorjetas' ? '#f59e0b'
+              : activeTab === 'deposite' ? '#22d3ee' : '#8b5cf6';
 
             return (
               <div key={house.id}
-                className="rounded-xl border transition-all duration-300 anim-fade-up"
+                className="rounded-xl border transition-all duration-300 anim-fade-up overflow-hidden"
                 style={{
-                  animationDelay: `${hi * 20}ms`,
-                  background: houseDone ? 'rgba(52,211,153,0.04)' : 'rgba(13,19,33,0.8)',
-                  borderColor: houseDone ? 'rgba(52,211,153,0.2)' : 'rgba(255,255,255,0.07)',
-                  backdropFilter: 'blur(12px)',
+                  animationDelay: `${hi * 18}ms`,
+                  background: houseDone ? 'rgba(52,211,153,0.035)' : 'rgba(255,255,255,0.02)',
+                  borderColor: houseDone ? 'rgba(52,211,153,0.18)' : 'rgba(255,255,255,0.065)',
                 }}>
                 <div className="flex items-start gap-3 p-4">
-                  {/* Index */}
+                  {/* Index number */}
                   <span className="flex-shrink-0 text-xs font-mono mt-0.5"
-                    style={{color: houseDone ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.15)'}}>
+                    style={{color: houseDone ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.12)'}}>
                     {String(hi + 1).padStart(2, '0')}
                   </span>
 
-                  {/* Body */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <a href={house.url} target="_blank" rel="noopener noreferrer"
-                        className="font-semibold text-sm hover:text-violet-300 transition-colors"
-                        style={{color: houseDone ? '#34d399' : '#e2e8f0', fontFamily:'Syne,sans-serif'}}>
+                        className="font-semibold text-sm hover:underline transition-colors"
+                        style={{
+                          color: houseDone ? '#34d399' : '#e2e8f0',
+                          fontFamily:'Syne,sans-serif',
+                          textDecorationColor: 'rgba(255,255,255,0.2)'
+                        }}>
                         {house.name}
-                        {hasDouble && (
-                          <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-md font-normal"
-                            style={{background:'rgba(139,92,246,0.2)', color:'#a78bfa'}}>
-                            ×{house.roletas.length}
-                          </span>
-                        )}
                       </a>
-                      {tags?.gorjeta && (
+                      {hasDouble && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
+                          style={{background:`${tabColor}18`, color:tabColor, fontSize:'0.65rem'}}>
+                          ×{house.roletas.length}
+                        </span>
+                      )}
+                      {activeTab === 'gorjetas' && (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.2)'}}>
+                          style={{background:'rgba(245,158,11,0.1)', color:'#f59e0b', border:'1px solid rgba(245,158,11,0.2)'}}>
                           Gorjeta
                         </span>
                       )}
-                      {tags?.deposite && (
+                      {activeTab === 'deposite' && (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                           style={{background:'rgba(34,211,238,0.1)', color:'#22d3ee', border:'1px solid rgba(34,211,238,0.2)'}}>
-                          Deposite
+                          Deposite+
                         </span>
                       )}
                     </div>
 
                     {house.note && (
-                      <div className="text-xs text-slate-500 mb-2">{house.note}</div>
+                      <div className="text-xs text-slate-600 mb-2 leading-relaxed">{house.note}</div>
                     )}
                     {(tags?.gorjeta || tags?.deposite) && (
-                      <div className="text-xs text-slate-600 mb-2">
+                      <div className="text-xs text-slate-700 mb-2">
                         {[tags?.gorjeta, tags?.deposite].filter(Boolean).join(' · ')}
                       </div>
                     )}
 
-                    {/* Roletas */}
+                    {/* Roleta buttons */}
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {house.roletas.map((r, ri) => {
                         const key = rk(house.id, ri);
@@ -434,15 +475,15 @@ function Dashboard() {
                           <div key={ri} className="flex flex-col gap-0.5">
                             <button
                               onClick={() => done ? unmark(house.id, ri) : openAmountModal(house.id, ri, r.label)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-[1.02]"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-[1.03]"
                               style={done
-                                ? {background:'rgba(52,211,153,0.12)', color:'#34d399', border:'1px solid rgba(52,211,153,0.25)'}
-                                : {background:'rgba(255,255,255,0.05)', color:'#94a3b8', border:'1px solid rgba(255,255,255,0.08)'}}>
+                                ? { background:'rgba(52,211,153,0.1)', color:'#34d399', border:'1px solid rgba(52,211,153,0.22)' }
+                                : { background:'rgba(255,255,255,0.04)', color:'#94a3b8', border:'1px solid rgba(255,255,255,0.07)' }}>
                               <span className="text-[10px]">{done ? '✓' : '○'}</span>
                               {r.label}
                             </button>
                             {done && entry && (
-                              <span className="text-[10px] text-slate-600 px-1">
+                              <span className="text-[9px] text-slate-700 px-1">
                                 {fmtTime(entry.ts)} · {fmtMoney(entry.amount)}
                               </span>
                             )}
@@ -452,11 +493,13 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  {/* External link */}
+                  {/* External link button */}
                   <a href={house.url} target="_blank" rel="noopener noreferrer"
-                    className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-violet-400 transition-colors mt-0.5"
-                    style={{background:'rgba(255,255,255,0.04)'}}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-colors mt-0.5"
+                    style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', color:'#374151'}}
+                    onMouseEnter={e => (e.currentTarget.style.color = tabColor)}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#374151')}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
                     </svg>
                   </a>
@@ -466,57 +509,67 @@ function Dashboard() {
           })}
         </div>
 
-        {displayed.length === 0 && (
-          <div className="text-center py-12 text-slate-600">
-            <div className="text-3xl mb-3">🎯</div>
-            <div className="text-sm">Nenhuma casa neste filtro</div>
+        {currentHouses.length === 0 && (
+          <div className="text-center py-16 text-slate-700">
+            <div className="text-4xl mb-3 opacity-50">
+              {activeTab === 'gorjetas' ? '💰' : activeTab === 'deposite' ? '🏦' : '🎯'}
+            </div>
+            <div className="text-sm">
+              {activeTab === 'gorjetas' ? 'Nenhuma casa com gorjeta cadastrada'
+                : activeTab === 'deposite' ? 'Nenhuma casa com promoção'
+                : 'Nenhuma roleta disponível'}
+            </div>
           </div>
         )}
       </div>
 
-      <footer className="fixed bottom-0 left-0 right-0 border-t border-white/[0.04] py-3 text-center text-xs text-slate-700"
-        style={{background:'rgba(7,11,20,0.9)', backdropFilter:'blur(20px)'}}>
-        Jogue com responsabilidade · 18+ · Reset automático à meia-noite
+      {/* FOOTER */}
+      <footer className="fixed bottom-0 left-0 right-0 border-t border-white/[0.035]"
+        style={{background:'rgba(6,10,18,0.92)', backdropFilter:'blur(20px)'}}>
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <span className="text-xs text-slate-700">Jogue com responsabilidade · 18+</span>
+          <span className="text-xs text-slate-800">Reset à meia-noite</span>
+        </div>
       </footer>
 
       <MemeWheel />
       <MinesGame />
 
-
       {/* AMOUNT MODAL */}
       {amountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{background:'rgba(0,0,0,0.7)', backdropFilter:'blur(8px)'}}
+          style={{background:'rgba(0,0,0,0.75)', backdropFilter:'blur(12px)'}}
           onClick={closeAmountModal}>
-          <div className="w-full max-w-xs rounded-2xl p-6 border border-white/[0.1] anim-fade-up"
-            style={{background:'rgba(13,19,33,0.98)', boxShadow:'0 32px 80px rgba(0,0,0,0.6)'}}
+          <div className="w-full max-w-xs rounded-2xl p-6 border border-white/[0.09] anim-fade-up"
+            style={{background:'rgba(10,14,26,0.99)', boxShadow:'0 32px 80px rgba(0,0,0,0.7)'}}
             onClick={e => e.stopPropagation()}>
-            <div className="text-base font-semibold text-white mb-1" style={{fontFamily:'Syne,sans-serif'}}>
+            <div className="text-base font-bold text-white mb-1" style={{fontFamily:'Syne,sans-serif'}}>
               Quanto você ganhou?
             </div>
-            <div className="text-xs text-slate-500 mb-5">{amountModal.label}</div>
+            <div className="text-xs text-slate-600 mb-5">{amountModal.label}</div>
             <input
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
+              type="number" inputMode="decimal" step="0.01" min="0" placeholder="0,00"
               value={amountInput}
               onChange={e => setAmountInput(e.target.value)}
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') confirmAmount(); }}
-              className="w-full px-4 py-3 rounded-xl text-white text-lg text-center outline-none border mb-4"
-              style={{background:'rgba(255,255,255,0.05)', borderColor:'rgba(139,92,246,0.4)', fontFamily:'Syne,sans-serif'}}
+              className="w-full px-4 py-3.5 rounded-xl text-white text-xl text-center outline-none mb-4"
+              style={{
+                background:'rgba(255,255,255,0.04)',
+                border:'1px solid rgba(139,92,246,0.35)',
+                fontFamily:'Syne,sans-serif',
+                caretColor: '#8b5cf6'
+              }}
             />
             <div className="grid grid-cols-2 gap-2">
               <button onClick={closeAmountModal}
-                className="py-2.5 rounded-xl text-sm font-medium text-slate-400 transition-colors hover:text-slate-200"
-                style={{background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.08)'}}>
+                className="py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)'}}>
                 Cancelar
               </button>
               <button onClick={confirmAmount}
-                className="py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{background:'linear-gradient(135deg, #7c3aed, #06b6d4)', boxShadow:'0 8px 24px rgba(139,92,246,0.35)'}}>
+                className="py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{background:'linear-gradient(135deg, #7c3aed, #06b6d4)', boxShadow:'0 6px 20px rgba(139,92,246,0.35)'}}>
                 Confirmar
               </button>
             </div>
@@ -533,8 +586,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{background:'#070b14'}}>
-        <div className="w-10 h-10 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{background:'#060a12'}}>
+        <div className="w-9 h-9 rounded-full border-2 border-violet-500/20 border-t-violet-500 animate-spin" />
       </div>
     );
   }
