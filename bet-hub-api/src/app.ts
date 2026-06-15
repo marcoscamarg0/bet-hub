@@ -4,9 +4,11 @@ import authRoutes from './routes/authRoutes.js';
 import houseRoutes from './routes/houseRoutes.js';
 import spinRoutes from './routes/spinRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import scoreRoutes from './routes/scoreRoutes.js';
 
 export function createApp() {
   const app = express();
+
 
   const corsOrigin = process.env.CORS_ORIGIN || '*';
   app.use(cors({ origin: corsOrigin }));
@@ -18,9 +20,11 @@ export function createApp() {
   app.use('/api/houses', houseRoutes);
   app.use('/api/spins', spinRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/score', scoreRoutes);
 
   // 404
   app.use((_req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
+
 
   return app;
 }
