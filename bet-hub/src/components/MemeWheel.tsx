@@ -392,7 +392,8 @@ export function MemeWheel() {
               background: winner.color + '14',
             }}>
             <div className="text-2xl mb-1.5">
-              {winner.id === '1' ? '🎉' : winner.id === '4' ? '💀' : '😅'}
+              {/* winner UI: avoid hardcoded segment ids */}
+              {winner.id === '1' ? '🎉' : winner.id === '2' ? '🔄' : winner.id === '3' ? '😬' : '🎲'}
             </div>
             <div className="font-bold text-sm" style={{color: winner.textColor, fontFamily:'Syne,sans-serif'}}>
               {winner.label}
