@@ -19,30 +19,9 @@ function fmtMoney(n: number) {
 
 type Filter = 'todas' | 'pendentes' | 'gorjetas' | 'deposite';
 
-const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {
-  lotogreen: { gorjeta: 'Gorjetas e roletas diarias', deposite: 'Deposito com campanhas recorrentes' },
-  lottu: { gorjeta: 'Giros e recompensas para usuarios ativos' },
-  novibet: { deposite: 'Bonus para depositar e jogar ao vivo' },
-  br4: { gorjeta: 'Duas roletas de bonus', deposite: 'Campanhas de deposito frequentes' },
-  superbet: { deposite: 'Ofertas para novos depositos' },
-  donald: { gorjeta: 'Bonus direto na conta' },
-  ginga: { gorjeta: 'Roleta e missoes promocionais' },
-  betano: { deposite: 'Promocoes para deposito e aposta' },
-  vaidebet: { deposite: 'Ofertas de deposito e cassino' },
-  hiper: { gorjeta: 'Bonus rapido', deposite: 'Deposito com beneficios de campanha' },
-  esportesdasorte: { deposite: 'Promocoes para deposito' },
-  apostaganha: { gorjeta: 'Roleta no cassino', deposite: 'Bonus de deposito no cassino' },
-  voudebet: { gorjeta: 'Bonus disponivel' },
-  vixe: { gorjeta: 'Roleta promocional' },
-  upbet: { gorjeta: 'Bonus e campanhas ativas' },
-  mma: { gorjeta: 'Bonus de cassino' },
-  apostou: { gorjeta: 'Roleta promocional' },
-  ona: { gorjeta: 'Roleta e missoes' },
-  betnacional: { deposite: 'Promocoes e bonus de deposito' },
-  jogao: { gorjeta: 'Bonus disponivel' },
-  jogodeouro: { gorjeta: 'Bonus disponivel' },
-  galera: { gorjeta: 'Bonus com condicoes especiais' },
-};
+// Tags “Gorjeta”/“Deposite” agora serão controladas pelo Admin via dados do backend.
+// Removemos as tags fixas do código para que não existam casas aparecendo nessas abas sem cadastro.
+const bonusTags: Record<string, { gorjeta?: string; deposite?: string }> = {};
 
 function msUntilMidnight() {
   const now = new Date();
@@ -166,14 +145,15 @@ function Dashboard() {
     });
   }, []);
 
-  const gorjetaCount = activeHouses.filter(h => bonusTags[h.id]?.gorjeta).length;
-  const depositeCount = activeHouses.filter(h => bonusTags[h.id]?.deposite).length;
-  const displayed = activeHouses.filter(h => {
+  const gorjetaCount = activeHouses.filter((h) => Boolean((h as any).gorjeta)).length;
+  const depositeCount = activeHouses.filter((h) => Boolean((h as any).deposito)).length;
+  const displayed = activeHouses.filter((h) => {
     if (filter === 'pendentes') return h.roletas.some((_, i) => !checked[rk(h.id, i)]);
-    if (filter === 'gorjetas') return !!bonusTags[h.id]?.gorjeta;
-    if (filter === 'deposite') return !!bonusTags[h.id]?.deposite;
+    if (filter === 'gorjetas') return Boolean((h as any).gorjeta);
+    if (filter === 'deposite') return Boolean((h as any).deposito);
     return true;
   });
+
 
   const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 

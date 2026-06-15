@@ -174,14 +174,36 @@ function HousesTab() {
 interface HouseFormState {
   id: string; name: string; url: string;
   roletas: { label: string; url: string }[];
-  active: boolean; note: string;
+  active: boolean;
+  note: string;
+  gorjeta: boolean;
+  deposito: boolean;
 }
+
 
 function HouseFormModal({ house, onClose, onSaved }: { house: ApiHouse | null; onClose: () => void; onSaved: () => void }) {
   const isEdit = !!house;
   const [form, setForm] = useState<HouseFormState>(() => house
-    ? { id: house.id, name: house.name, url: house.url, roletas: house.roletas.length ? house.roletas : [{ label: '', url: '' }], active: house.active, note: house.note ?? '' }
-    : { id: '', name: '', url: '', roletas: [{ label: 'Roleta', url: '' }], active: true, note: '' }
+    ? {
+      id: house.id,
+      name: house.name,
+      url: house.url,
+      roletas: house.roletas.length ? house.roletas : [{ label: '', url: '' }],
+      active: house.active,
+      note: house.note ?? '',
+      gorjeta: Boolean((house as any).gorjeta),
+      deposito: Boolean((house as any).deposito),
+    }
+    : {
+      id: '',
+      name: '',
+      url: '',
+      roletas: [{ label: 'Roleta', url: '' }],
+      active: true,
+      note: '',
+      gorjeta: false,
+      deposito: false,
+    }
   );
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -204,10 +226,28 @@ function HouseFormModal({ house, onClose, onSaved }: { house: ApiHouse | null; o
     setSaving(true);
     try {
       if (isEdit) {
-        await api.updateHouse(house!.id, { name: form.name, url: form.url, roletas, active: form.active, note: form.note || undefined });
+        await api.updateHouse(house!.id, {
+          name: form.name,
+          url: form.url,
+          roletas,
+          active: form.active,
+          note: form.note || undefined,
+          gorjeta: form.gorjeta,
+          deposito: form.deposito,
+        });
       } else {
-        await api.createHouse({ id: form.id.toLowerCase().trim(), name: form.name, url: form.url, roletas, active: form.active, note: form.note || undefined });
+        await api.createHouse({
+          id: form.id.toLowerCase().trim(),
+          name: form.name,
+          url: form.url,
+          roletas,
+          active: form.active,
+          note: form.note || undefined,
+          gorjeta: form.gorjeta,
+          deposito: form.deposito,
+        });
       }
+
       onSaved();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao salvar');
@@ -284,6 +324,23 @@ function HouseFormModal({ house, onClose, onSaved }: { house: ApiHouse | null; o
               className="w-4 h-4 rounded" />
             <span className="text-sm text-slate-300">Casa ativa</span>
           </label>
+
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <input type="checkbox" checked={form.gorjeta}
+                onChange={e => setForm(f => ({ ...f, gorjeta: e.target.checked }))}
+                className="w-4 h-4 rounded" />
+              <span className="text-sm text-slate-300">Gorjeta</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <input type="checkbox" checked={form.deposito}
+                onChange={e => setForm(f => ({ ...f, deposito: e.target.checked }))}
+                className="w-4 h-4 rounded" />
+              <span className="text-sm text-slate-300">Deposite</span>
+            </label>
+          </div>
+
         </div>
 
         {error && (

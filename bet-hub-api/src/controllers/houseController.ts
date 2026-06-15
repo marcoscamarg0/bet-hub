@@ -15,7 +15,7 @@ export async function listHouses(_req: Request, res: Response) {
 /** [ADMIN] Cria uma nova casa de apostas */
 export async function createHouse(req: Request, res: Response) {
   try {
-    const { id, name, url, roletas, active, note, order } = req.body as {
+    const { id, name, url, roletas, active, note, order, gorjeta, deposito } = req.body as {
       id?: string;
       name?: string;
       url?: string;
@@ -23,6 +23,8 @@ export async function createHouse(req: Request, res: Response) {
       active?: boolean;
       note?: string;
       order?: number;
+      gorjeta?: boolean;
+      deposito?: boolean;
     };
 
     if (!id || !name || !url) {
@@ -42,6 +44,8 @@ export async function createHouse(req: Request, res: Response) {
       active: active ?? true,
       note,
       order: order ?? (await House.countDocuments()),
+      gorjeta: gorjeta ?? false,
+      deposito: deposito ?? false,
     });
 
     return res.status(201).json({ house });
@@ -62,6 +66,8 @@ export async function updateHouse(req: Request, res: Response) {
       active: boolean;
       note: string;
       order: number;
+      gorjeta: boolean;
+      deposito: boolean;
     }>;
 
     const house = await House.findOneAndUpdate({ id: id.toLowerCase() }, updates, {

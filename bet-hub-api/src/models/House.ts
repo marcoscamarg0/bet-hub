@@ -34,9 +34,16 @@ const houseSchema = new Schema<IHouse>(
     active: { type: Boolean, default: true },
     note: { type: String },
     order: { type: Number, default: 0 },
+
+    // Flags para filtrar nas abas do front
+    gorjeta: { type: Boolean, default: false },
+    deposito: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 export const House: Model<IHouse> =
   mongoose.models.House || mongoose.model<IHouse>('House', houseSchema);
+
+
+
