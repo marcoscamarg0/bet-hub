@@ -38,6 +38,7 @@ const houseSchema = new Schema<IHouse>(
     // Flags para filtrar nas abas do front
     gorjeta: { type: Boolean, default: false },
     deposito: { type: Boolean, default: false },
+
   },
   { timestamps: true }
 );
