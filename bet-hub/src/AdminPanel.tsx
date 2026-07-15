@@ -468,6 +468,7 @@ function EarningsTab() {
 function StreamersTab() {
   const [streamers, setStreamers] = useState<any[]>([]);
   const [form, setForm] = useState({ name: '', platform: 'twitch', channelId: '', tipUrl: '' });
+  const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
 
@@ -485,16 +486,27 @@ function StreamersTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function handleCreate(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.channelId) return;
     try {
-      await api.adminCreateStreamer(form);
+      if (editId) {
+        await api.adminUpdateStreamer(editId, form);
+      } else {
+        await api.adminCreateStreamer(form);
+      }
       setForm({ name: '', platform: 'twitch', channelId: '', tipUrl: '' });
+      setEditId(null);
       load();
     } catch (err) {
-      alert('Erro ao criar streamer');
+      alert(editId ? 'Erro ao atualizar streamer' : 'Erro ao criar streamer');
     }
+  }
+
+  function handleEdit(s: any) {
+    setForm({ name: s.name, platform: s.platform, channelId: s.channelId, tipUrl: s.tipUrl || '' });
+    setEditId(s._id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function handleDelete(id: string) {
@@ -532,9 +544,15 @@ function StreamersTab() {
         </button>
       </div>
 
-      <form onSubmit={handleCreate} className="p-4 rounded-2xl border flex flex-col gap-4"
+      <form onSubmit={handleSubmit} className="p-4 rounded-2xl border flex flex-col gap-4"
         style={{background:'rgba(255,255,255,0.02)', borderColor:'rgba(255,255,255,0.06)'}}>
-        <h3 className="font-bold text-white mb-2">Adicionar Streamer</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-bold text-white">{editId ? 'Editar Streamer' : 'Adicionar Streamer'}</h3>
+          {editId && (
+            <button type="button" onClick={() => { setEditId(null); setForm({ name: '', platform: 'twitch', channelId: '', tipUrl: '' }); }}
+              className="text-xs text-slate-400 hover:text-white">Cancelar edição</button>
+          )}
+        </div>
         
         <div className="grid grid-cols-2 gap-4">
           <label className="flex flex-col gap-1">
@@ -566,7 +584,7 @@ function StreamersTab() {
         </div>
 
         <button type="submit" className="mt-2 py-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-sm hover:opacity-90">
-          Adicionar
+          {editId ? 'Salvar Alterações' : 'Adicionar'}
         </button>
       </form>
 
@@ -582,9 +600,14 @@ function StreamersTab() {
               </div>
               <div className="text-xs text-slate-400 mt-1 truncate">ID: {s.channelId} {s.tipUrl ? `• Tip: ${s.tipUrl}` : ''}</div>
             </div>
-            <button onClick={() => handleDelete(s._id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
-              ✕
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => handleEdit(s)} className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition-colors">
+                ✎
+              </button>
+              <button onClick={() => handleDelete(s._id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+                ✕
+              </button>
+            </div>
           </div>
         ))}
         {streamers.length === 0 && <div className="text-center text-slate-500 py-8">Nenhum streamer cadastrado</div>}

@@ -39,24 +39,56 @@ export function LiveAlert({ onGoToGorjetas }: { onGoToGorjetas: () => void }) {
             Assistindo na {liveStreamer.platform === 'twitch' ? 'Twitch' : 'YouTube'}? Vá para a aba Gorjetas!
           </p>
           <div className="live-alert-actions">
-            <button
-              className="live-alert-btn primary"
-              onClick={() => {
-                setVisible(false);
-                onGoToGorjetas();
-              }}
-            >
-              Ver Gorjetas
-            </button>
-            <button 
-              className="live-alert-btn secondary" 
-              onClick={() => {
-                setVisible(false);
-                setClosed(true);
-              }}
-            >
-              Fechar
-            </button>
+            {liveStreamer.tipUrl ? (
+              <a
+                href={liveStreamer.tipUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="live-alert-btn primary"
+                style={{ textDecoration: 'none', display: 'inline-block' }}
+                onClick={() => {
+                  setVisible(false);
+                }}
+              >
+                Enviar Gorjeta
+              </a>
+            ) : (
+              <button
+                className="live-alert-btn primary"
+                onClick={() => {
+                  setVisible(false);
+                  onGoToGorjetas();
+                }}
+              >
+                Ver Gorjetas
+              </button>
+            )}
+            
+            {liveStreamer.streamUrl && (
+              <a
+                href={liveStreamer.streamUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="live-alert-btn secondary"
+                style={{ textDecoration: 'none', display: 'inline-block' }}
+                onClick={() => {
+                  setVisible(false);
+                }}
+              >
+                Assistir
+              </a>
+            )}
+            {!liveStreamer.streamUrl && (
+              <button 
+                className="live-alert-btn secondary" 
+                onClick={() => {
+                  setVisible(false);
+                  setClosed(true);
+                }}
+              >
+                Fechar
+              </button>
+            )}
           </div>
         </div>
       </div>
