@@ -166,23 +166,28 @@ export function GatesOfForest({ isOpen, onClose }: { isOpen?: boolean; onClose?:
   const [scores, setScores] = useState<{ name: string; amount: number; createdAt: string }[]>([]);
   const [statusMsg, setStatusMsg] = useState('');
   const [isFast, setIsFast] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Load leaderboard
   useEffect(() => {
-    loadScores();
-    const interval = setInterval(loadScores, 30000);
+    api.getScores({ game: 'forest', limit: 10 })
+      .then(data => setScores(data))
+      .catch(() => {});
+    const interval = setInterval(() => {
+      api.getScores({ game: 'forest', limit: 10 })
+        .then(data => setScores(data))
+        .catch(() => {});
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  async function loadScores() {
-    try {
-      const data = await api.getScores({ game: 'forest', limit: 20 });
-      setScores(data.map(s => ({ name: s.username || s.name, amount: s.amount, createdAt: s.createdAt })));
-    } catch {
-      // silently fail
+  // Load balance
+  useEffect(() => {
+    if (open) {
+      api.getBalance().then(d => setBalance(d.balance)).catch(() => {});
     }
-  }
+  }, [open]);
 
   async function saveScore(amount: number) {
     if (amount <= 0) return;
@@ -335,6 +340,14 @@ export function GatesOfForest({ isOpen, onClose }: { isOpen?: boolean; onClose?:
           <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
+        {/* BALANCE BAR */}
+        <div className={styles.balanceBar}>
+          <span className={styles.balanceLabel}>💰 Saldo virtual</span>
+          <span className={`${styles.balanceValue} ${balance !== null && balance < 20 ? styles.balanceLow : ''}`}>
+            {balance !== null ? fmtMoney(balance) : '...'}
+          </span>
+        </div>
+
         <div className={styles.body}>
           {/* MAIN GAME AREA */}
           <div className={styles.gameArea}>
@@ -347,11 +360,11 @@ export function GatesOfForest({ isOpen, onClose }: { isOpen?: boolean; onClose?:
               </div>
               <div className={styles.stat}>
                 <span className={styles.statLabel}>Multiplicador</span>
-                <span className={styles.statVal} style={{ color: multiplier > 1 ? '#34d399' : '#94a3b8' }}>×{multiplier}</span>
+                <span className={`${styles.statVal} ${multiplier > 1 ? styles.statValGreen : ''}`}>×{multiplier}</span>
               </div>
               <div className={styles.stat}>
                 <span className={styles.statLabel}>Ganho rodada</span>
-                <span className={styles.statVal} style={{ color: totalWin > 0 ? '#fbbf24' : '#94a3b8' }}>{fmtMoney(totalWin)}</span>
+                <span className={`${styles.statVal} ${totalWin > 0 ? styles.statValGold : ''}`}>{fmtMoney(totalWin)}</span>
               </div>
               {phase === 'freespins' && (
                 <div className={styles.stat}>

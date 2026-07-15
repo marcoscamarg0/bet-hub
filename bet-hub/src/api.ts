@@ -77,6 +77,7 @@ export interface ApiUser {
   username?: string;
   email: string;
   role: 'user' | 'admin';
+  balance?: number;
   createdAt?: string;
 }
 
@@ -199,4 +200,23 @@ export const api = {
 
   postScore: (data: { name: string; amount: number; game: 'mines' | 'forest' | 'dragon'; mines?: number; cells?: number; metadata?: Record<string, unknown> }) =>
     request<ApiScore>('/api/score', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ── Balance ──
+  getBalance: () =>
+    request<{ balance: number; canClaimDaily: boolean; lastDailyReset: string | null }>('/api/balance'),
+
+  claimDaily: () =>
+    request<{ balance: number; claimed: number }>('/api/balance/claim', { method: 'POST' }),
+
+  spendBalance: (amount: number) =>
+    request<{ balance: number; spent: number }>('/api/balance/spend', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    }),
+
+  addBalance: (amount: number) =>
+    request<{ balance: number; added: number }>('/api/balance/add', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    }),
 };

@@ -21,6 +21,7 @@ function publicUser(user: any) {
     username: user.username || user.email?.split('@')[0] || user.name,
     email: user.email,
     role: user.role,
+    balance: user.balance ?? 100,
     createdAt: user.createdAt,
   };
 }
