@@ -146,6 +146,7 @@ export function FortuneDragon({ isOpen, onClose }: { isOpen?: boolean; onClose?:
   const [statusMsg, setStatusMsg] = useState('');
   const [scores, setScores] = useState<{ name: string; amount: number; createdAt: string }[]>([]);
   const [isFast, setIsFast] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const highlightRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -161,6 +162,13 @@ export function FortuneDragon({ isOpen, onClose }: { isOpen?: boolean; onClose?:
       setScores(data.map(s => ({ name: s.username || s.name, amount: s.amount, createdAt: s.createdAt })));
     } catch { /* silent */ }
   }
+
+  // Load balance
+  useEffect(() => {
+    if (open) {
+      api.getBalance().then(d => setBalance(d.balance)).catch(() => {});
+    }
+  }, [open]);
 
   async function saveScore(amount: number) {
     if (amount <= 0) return;
@@ -258,6 +266,14 @@ export function FortuneDragon({ isOpen, onClose }: { isOpen?: boolean; onClose?:
           <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
+        {/* BALANCE BAR */}
+        <div className={styles.balanceBar}>
+          <span className={styles.balanceLabel}>💰 Saldo virtual</span>
+          <span className={`${styles.balanceValue} ${balance !== null && balance < 20 ? styles.balanceLow : ''}`}>
+            {balance !== null ? fmtMoney(balance) : '...'}
+          </span>
+        </div>
+
         <div className={styles.body}>
           <div className={styles.gameArea}>
 
@@ -269,11 +285,11 @@ export function FortuneDragon({ isOpen, onClose }: { isOpen?: boolean; onClose?:
               </div>
               <div className={styles.stat}>
                 <span className={styles.statLabel}>Linhas</span>
-                <span className={styles.statVal} style={{ color: '#fbbf24' }}>20</span>
+                <span className={`${styles.statVal} ${styles.statValGold}`}>20</span>
               </div>
               <div className={styles.stat}>
                 <span className={styles.statLabel}>Ganho</span>
-                <span className={styles.statVal} style={{ color: totalWin > 0 ? '#fbbf24' : '#94a3b8' }}>
+                <span className={`${styles.statVal} ${totalWin > 0 ? styles.statValGold : ''}`}>
                   {fmtMoney(totalWin)}
                 </span>
               </div>
