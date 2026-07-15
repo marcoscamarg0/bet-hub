@@ -9,6 +9,7 @@ import { MinesGame } from './components/Mines';
 import { GatesOfForest } from './components/GatesOfForest';
 import { FortuneDragon } from './components/FortuneDragon';
 import { GlobalRanking } from './components/GlobalRanking';
+import { LiveAlert } from './components/LiveAlert';
 
 // ── Helpers ──────────────────────────────────────────────────
 function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
@@ -86,6 +87,7 @@ function Dashboard() {
   const { user, logout } = useAuth();
 
   const [houses, setHouses] = useState<ApiHouse[] | null>(null);
+  const [liveStreamers, setLiveStreamers] = useState<any[]>([]);
   const [checked, setChecked] = useState<Record<string, { ts: string; amount: number }>>({});
   const [totalGanhoHoje, setTotalGanhoHoje] = useState(0);
   const [gorjetas, setGorjetas] = useState(0);
@@ -106,9 +108,14 @@ function Dashboard() {
     let cancelled = false;
     async function load() {
       try {
-        const [housesRes, todayRes] = await Promise.all([api.getHouses(), api.getMyToday()]);
+        const [housesRes, todayRes, streamersRes] = await Promise.all([
+          api.getHouses(), 
+          api.getMyToday(),
+          api.getLiveStreamers().catch(() => ({ streamers: [] }))
+        ]);
         if (cancelled) return;
         setHouses(housesRes.houses);
+        setLiveStreamers(streamersRes.streamers);
         setApiError(false);
         const map: Record<string, { ts: string; amount: number }> = {};
         for (const spin of todayRes.spins) {
@@ -424,6 +431,22 @@ function Dashboard() {
           </div>
         )}
 
+        {/* LIVE STREAMERS */}
+        {activeTab === 'gorjetas' && liveStreamers.map((s, i) => (
+          <div key={s._id} className="rounded-xl p-4 border flex items-center gap-4"
+            style={{background: 'rgba(239,68,68,0.03)', borderColor: 'rgba(239,68,68,0.15)'}}>
+            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-xl">🔴</div>
+            <div className="flex-1">
+              <div className="text-sm font-bold text-red-400">{s.name}</div>
+              <div className="text-xs text-slate-500">{s.streamTitle || 'Ao vivo agora!'}</div>
+            </div>
+            <a href={s.streamUrl} target="_blank" rel="noopener noreferrer" 
+              className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+              Assistir
+            </a>
+          </div>
+        ))}
+
         {/* GAMES GRID */}
         {activeTab === 'jogos' && (
           <div className="grid grid-cols-2 gap-3 mt-4">
@@ -602,6 +625,7 @@ function Dashboard() {
         </div>
       </footer>
 
+      <LiveAlert onGoToGorjetas={() => setActiveTab('gorjetas')} />
       <MemeWheel />
       <MinesGame isOpen={openGame === 'mines'} onClose={() => setOpenGame(null)} />
       <GatesOfForest isOpen={openGame === 'forest'} onClose={() => setOpenGame(null)} />

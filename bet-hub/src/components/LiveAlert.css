@@ -1,0 +1,102 @@
+.live-alert-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.live-alert {
+  background: rgba(10, 14, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 1.2rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.1);
+  max-width: 340px;
+}
+
+.live-alert-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.2rem;
+}
+
+.live-pulse {
+  display: inline-block;
+  animation: pulseRed 1.5s infinite;
+}
+
+@keyframes pulseRed {
+  0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0.7)); }
+  50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.9)); }
+  100% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0)); }
+}
+
+.live-alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.live-alert-title {
+  margin: 0;
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.live-alert-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.live-alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.live-alert-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.live-alert-btn.primary {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.live-alert-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.live-alert-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-alert-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}

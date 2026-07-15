@@ -10,7 +10,7 @@ function fmtDateTime(iso: string | null) {
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-type Tab = 'houses' | 'earnings' | 'bonuses';
+type Tab = 'houses' | 'earnings' | 'streamers';
 
 
 export function AdminPanel({ onBack }: { onBack: () => void }) {
@@ -36,18 +36,18 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
 
       <div className="max-w-3xl mx-auto px-4 pt-4">
         <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{background:'rgba(255,255,255,0.05)'}}>
-          {(['houses','earnings'] as Tab[]).map(t => (
+          {(['houses','earnings','streamers'] as Tab[]).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
               style={tab === t
                 ? {background:'linear-gradient(135deg, #7c3aed, #06b6d4)', color:'white'}
                 : {color:'#64748b'}}>
-              {t === 'houses' ? 'Casas' : 'Ganhos dos usuários'}
+              {t === 'houses' ? 'Casas' : t === 'earnings' ? 'Ganhos dos usuários' : 'Streamers'}
             </button>
           ))}
         </div>
 
-        {tab === 'houses' ? <HousesTab /> : <EarningsTab />}
+        {tab === 'houses' ? <HousesTab /> : tab === 'earnings' ? <EarningsTab /> : <StreamersTab />}
       </div>
     </div>
   );
@@ -460,6 +460,112 @@ function EarningsTab() {
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function StreamersTab() {
+  const [streamers, setStreamers] = useState<any[]>([]);
+  const [form, setForm] = useState({ name: '', platform: 'twitch', channelId: '', tipUrl: '' });
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.adminGetStreamers();
+      setStreamers(res.streamers);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name || !form.channelId) return;
+    try {
+      await api.adminCreateStreamer(form);
+      setForm({ name: '', platform: 'twitch', channelId: '', tipUrl: '' });
+      load();
+    } catch (err) {
+      alert('Erro ao criar streamer');
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Excluir este streamer?')) return;
+    try {
+      await api.adminDeleteStreamer(id);
+      load();
+    } catch (err) {
+      alert('Erro ao excluir');
+    }
+  }
+
+  if (loading) return <div className="text-slate-400">Carregando...</div>;
+
+  return (
+    <div className="flex flex-col gap-6 pb-20">
+      <form onSubmit={handleCreate} className="p-4 rounded-2xl border flex flex-col gap-4"
+        style={{background:'rgba(255,255,255,0.02)', borderColor:'rgba(255,255,255,0.06)'}}>
+        <h3 className="font-bold text-white mb-2">Adicionar Streamer</h3>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400 font-medium uppercase">Nome</span>
+            <input required value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
+              className="bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-cyan-500 outline-none" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400 font-medium uppercase">Plataforma</span>
+            <select value={form.platform} onChange={e => setForm(f => ({...f, platform: e.target.value as any}))}
+              className="bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-cyan-500 outline-none">
+              <option value="twitch">Twitch</option>
+              <option value="youtube">YouTube</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400 font-medium uppercase">ID do Canal (Twitch Login ou YT ID)</span>
+            <input required value={form.channelId} onChange={e => setForm(f => ({...f, channelId: e.target.value}))}
+              className="bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-cyan-500 outline-none" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400 font-medium uppercase">Link da Gorjeta (Opcional)</span>
+            <input value={form.tipUrl} onChange={e => setForm(f => ({...f, tipUrl: e.target.value}))}
+              className="bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-cyan-500 outline-none" />
+          </label>
+        </div>
+
+        <button type="submit" className="mt-2 py-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-sm hover:opacity-90">
+          Adicionar
+        </button>
+      </form>
+
+      <div className="flex flex-col gap-3">
+        {streamers.map(s => (
+          <div key={s._id} className="p-4 rounded-xl border flex items-center gap-4"
+            style={{background:'rgba(255,255,255,0.03)', borderColor:'rgba(255,255,255,0.06)'}}>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-white">{s.name}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-slate-300">{s.platform}</span>
+                {s.isLive && <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/30">Ao Vivo</span>}
+              </div>
+              <div className="text-xs text-slate-400 mt-1 truncate">ID: {s.channelId} {s.tipUrl ? `• Tip: ${s.tipUrl}` : ''}</div>
+            </div>
+            <button onClick={() => handleDelete(s._id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+              ✕
+            </button>
+          </div>
+        ))}
+        {streamers.length === 0 && <div className="text-center text-slate-500 py-8">Nenhum streamer cadastrado</div>}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import spinRoutes from './routes/spinRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import scoreRoutes from './routes/scoreRoutes.js';
 import balanceRoutes from './routes/balanceRoutes.js';
+import streamerRoutes from './routes/streamerRoutes.js';
 
 export function createApp() {
   const app = express();
@@ -23,6 +24,7 @@ export function createApp() {
   app.use('/api/admin', adminRoutes);
   app.use('/api/score', scoreRoutes);
   app.use('/api/balance', balanceRoutes);
+  app.use('/api/streamers', streamerRoutes);
 
   // 404
   app.use((_req, res) => res.status(404).json({ error: 'Rota não encontrada' }));

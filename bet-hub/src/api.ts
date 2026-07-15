@@ -113,6 +113,19 @@ export interface ApiScore {
   createdAt: string;
 }
 
+export interface ApiStreamer {
+  _id: string;
+  name: string;
+  platform: 'twitch' | 'youtube';
+  channelId: string;
+  tipUrl?: string;
+  isLive: boolean;
+  streamTitle?: string;
+  streamUrl?: string;
+  thumbnailUrl?: string;
+  lastChecked: string;
+}
+
 // ── Auth ──────────────────────────────────────────────────────
 export const api = {
   register: (name: string, username: string, password: string) =>
@@ -219,4 +232,24 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ amount }),
     }),
+
+  // ── Streamers ──
+  getLiveStreamers: () => request<{ streamers: ApiStreamer[] }>('/api/streamers/live'),
+
+  adminGetStreamers: () => request<{ streamers: ApiStreamer[] }>('/api/admin/streamers'),
+
+  adminCreateStreamer: (data: Partial<ApiStreamer>) =>
+    request<{ streamer: ApiStreamer }>('/api/admin/streamers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  adminUpdateStreamer: (id: string, data: Partial<ApiStreamer>) =>
+    request<{ streamer: ApiStreamer }>(`/api/admin/streamers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  adminDeleteStreamer: (id: string) =>
+    request<{ ok: true }>(`/api/admin/streamers/${id}`, { method: 'DELETE' }),
 };
