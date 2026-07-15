@@ -144,9 +144,12 @@ function timeSince(ts: string) {
 // ── Component ─────────────────────────────────────────────────
 type Phase = 'idle' | 'spinning' | 'cascade' | 'freespins' | 'result';
 
-export function GatesOfForest() {
+export function GatesOfForest({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const handleClose = () => { if (onClose) onClose(); else setInternalOpen(false); };
+  const handleOpen = () => setInternalOpen(true);
   const [grid, setGrid] = useState<Sym[]>(generateGrid());
   const [phase, setPhase] = useState<Phase>('idle');
   const [bet, setBet] = useState(10);
@@ -307,8 +310,9 @@ export function GatesOfForest() {
   const canSpinFree = !isPlaying && phase === 'freespins' && freeSpinsLeft > 0;
 
   if (!open) {
+    if (isOpen !== undefined) return null;
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Gates of the Forest">
+      <button className={styles.fab} onClick={handleOpen} title="Gates of the Forest">
         <span className={styles.fabIcon}>🌿</span>
         <span className={styles.fabLabel}>Forest</span>
       </button>
@@ -316,7 +320,7 @@ export function GatesOfForest() {
   }
 
   return (
-    <div className={styles.overlay} onClick={() => !isPlaying && setOpen(false)}>
+    <div className={styles.overlay} onClick={() => !isPlaying && handleClose()}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
 
         {/* HEADER */}
@@ -328,7 +332,7 @@ export function GatesOfForest() {
               <div className={styles.headerSub}>Slots místico · Cluster pays</div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
+          <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
         <div className={styles.body}>

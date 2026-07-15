@@ -53,8 +53,11 @@ const GAME_BADGE: Record<string, { emoji: string; label: string; color: string }
   dragon: { emoji: '🐉', label: 'Dragon', color: '#ef4444' },
 };
 
-export function GlobalRanking() {
-  const [open, setOpen] = useState(false);
+export function GlobalRanking({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const handleClose = () => { if (onClose) onClose(); else setInternalOpen(false); };
+  const handleOpen = () => setInternalOpen(true);
   const [game, setGame] = useState<GameFilter>('all');
   const [period, setPeriod] = useState<PeriodFilter>('all');
   const [scores, setScores] = useState<ApiScore[]>([]);
@@ -89,8 +92,9 @@ export function GlobalRanking() {
   const accentColor = GAME_COLORS[game];
 
   if (!open) {
+    if (isOpen !== undefined) return null;
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Ranking Global" style={{ '--fab-color': accentColor } as React.CSSProperties}>
+      <button className={styles.fab} onClick={handleOpen} title="Ranking Global" style={{ '--fab-color': accentColor } as React.CSSProperties}>
         <span className={styles.fabIcon}>🏆</span>
         <span className={styles.fabLabel}>Ranking</span>
       </button>
@@ -98,7 +102,7 @@ export function GlobalRanking() {
   }
 
   return (
-    <div className={styles.overlay} onClick={() => setOpen(false)}>
+    <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ '--accent': accentColor } as React.CSSProperties}>
 
         {/* HEADER */}
@@ -112,7 +116,7 @@ export function GlobalRanking() {
               </div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
+          <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
         {/* FILTERS */}

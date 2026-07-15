@@ -127,9 +127,12 @@ function timeSince(ts: string) {
 
 type Phase = 'idle' | 'spinning' | 'result';
 
-export function FortuneDragon() {
+export function FortuneDragon({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const handleClose = () => { if (onClose) onClose(); else setInternalOpen(false); };
+  const handleOpen = () => setInternalOpen(true);
   const [grid, setGrid] = useState<Sym[][]>(generateGrid());
   const [phase, setPhase] = useState<Phase>('idle');
   const [bet, setBet] = useState(10);
@@ -230,8 +233,9 @@ export function FortuneDragon() {
   const isSpinning = phase === 'spinning';
 
   if (!open) {
+    if (isOpen !== undefined) return null;
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Fortune Dragon">
+      <button className={styles.fab} onClick={handleOpen} title="Fortune Dragon">
         <span className={styles.fabIcon}>🐉</span>
         <span className={styles.fabLabel}>Dragon</span>
       </button>
@@ -239,7 +243,7 @@ export function FortuneDragon() {
   }
 
   return (
-    <div className={styles.overlay} onClick={() => !isSpinning && setOpen(false)}>
+    <div className={styles.overlay} onClick={() => !isSpinning && handleClose()}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
 
         {/* HEADER */}
@@ -251,7 +255,7 @@ export function FortuneDragon() {
               <div className={styles.headerSub}>20 linhas · Wild 🐉</div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
+          <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
         <div className={styles.body}>

@@ -78,8 +78,11 @@ type CellState = 'hidden' | 'safe' | 'bust' | 'mine-reveal' | 'safe-reveal';
 // ── Component ────────────────────────────────────────────────
 type GamePhase = 'idle' | 'playing' | 'won' | 'lost';
 
-export function MinesGame() {
-  const [open, setOpen] = useState(false);
+export function MinesGame({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const handleClose = () => { if (onClose) onClose(); else setInternalOpen(false); };
+  const handleOpen = () => setInternalOpen(true);
   const [phase, setPhase] = useState<GamePhase>('idle');
   const [bet, setBet] = useState(10);
   const [mineCount, setMineCount] = useState(3);
@@ -199,15 +202,16 @@ export function MinesGame() {
   const canCash = playing && revealed.size > 0;
 
   if (!open) {
+    if (isOpen !== undefined) return null;
     return (
-      <button className={styles.fab} onClick={() => setOpen(true)} title="Jogar Mines">
+      <button className={styles.fab} onClick={handleOpen} title="Jogar Mines">
         💣
       </button>
     );
   }
 
   return (
-    <div className={styles.overlay} onClick={() => !playing && setOpen(false)}>
+    <div className={styles.overlay} onClick={() => !playing && handleClose()}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
 
         {/* HEADER */}
@@ -216,7 +220,7 @@ export function MinesGame() {
             <span className={styles.headerTitle}>Mines</span>
             <span className={styles.headerSub}>Apostas fictícias</span>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
+          <button className={styles.closeBtn} onClick={handleClose}>✕</button>
         </div>
 
         <div className={styles.body}>
