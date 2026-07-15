@@ -182,25 +182,31 @@
   font-size: clamp(1.3rem, 4vw, 2rem);
   line-height: 1;
   display: block;
+  animation: dragonBreathe 4s ease-in-out infinite;
+}
+@keyframes dragonBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
 }
 .cellWin {
   background: rgba(251, 191, 36, 0.1);
   border-color: var(--cell-color, #fbbf24);
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3), inset 0 0 20px rgba(251, 191, 36, 0.05);
-  animation: dragonWin 0.5s ease infinite alternate;
+  animation: dragonWin 0.6s ease infinite alternate;
+  z-index: 10;
 }
 @keyframes dragonWin {
-  from { transform: scale(1); filter: brightness(1); }
-  to   { transform: scale(1.08); filter: brightness(1.2); }
+  0% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+  50% { transform: scale(1.15); filter: brightness(1.4) drop-shadow(0 0 10px rgba(251, 191, 36, 0.8)); box-shadow: 0 0 30px rgba(251, 191, 36, 0.6), inset 0 0 30px rgba(251, 191, 36, 0.2); }
+  100% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
 }
 .cellSpin {
-  animation: reelSpin 0.12s linear infinite;
+  animation: reelSpin 0.08s linear infinite;
   overflow: hidden;
 }
 @keyframes reelSpin {
-  0%   { transform: translateY(-8px); opacity: 0.6; }
-  50%  { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(8px); opacity: 0.6; }
+  0%   { transform: translateY(-15px); opacity: 0.4; filter: blur(3px); }
+  50%  { transform: translateY(0); opacity: 1; filter: blur(0px); }
+  100% { transform: translateY(15px); opacity: 0.4; filter: blur(3px); }
 }
 
 /* ── BET ──────────────────────────────────────────────────── */
@@ -222,9 +228,29 @@
 .betBtnActive { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.35); color: #f87171; }
 .betBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── ACTION BUTTONS ───────────────────────────────────────── */
+.actionRow { display: flex; gap: 0.5rem; }
+
+.btnFast {
+  padding: 0 1.25rem;
+  border-radius: 14px;
+  font-size: 1.3rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btnFast:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fbbf24; }
+.btnFastActive { background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; filter: drop-shadow(0 0 8px rgba(251,191,36,0.4)); }
+.btnFast:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── SPIN BUTTON ──────────────────────────────────────────── */
 .btnSpin {
-  width: 100%;
+  flex: 1;
   padding: 0.9rem;
   border-radius: 14px;
   font-size: 1rem;

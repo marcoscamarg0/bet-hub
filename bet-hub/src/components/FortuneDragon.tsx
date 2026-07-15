@@ -142,6 +142,7 @@ export function FortuneDragon() {
   const [winCells, setWinCells] = useState<Set<string>>(new Set());
   const [statusMsg, setStatusMsg] = useState('');
   const [scores, setScores] = useState<{ name: string; amount: number; createdAt: string }[]>([]);
+  const [isFast, setIsFast] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const highlightRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -184,7 +185,7 @@ export function FortuneDragon() {
     const spinState = Array.from({ length: ROWS }, () => Array(COLS).fill(true));
     setSpinning(spinState);
 
-    const delays = [300, 450, 600, 750, 900];
+    const delays = isFast ? [50, 100, 150, 200, 250] : [300, 450, 600, 750, 900];
     const finalGrid = generateGrid();
 
     delays.forEach((delay, col) => {
@@ -327,15 +328,25 @@ export function FortuneDragon() {
             </div>
 
             {/* Spin button */}
-            <button
-              className={`${styles.btnSpin} ${isSpinning ? styles.btnSpinActive : ''}`}
-              onClick={spin}
-              disabled={isSpinning}
-            >
-              {isSpinning ? (
-                <><span className={styles.reel} />Girando...</>
-              ) : '🐉 GIRAR'}
-            </button>
+            <div className={styles.actionRow}>
+              <button 
+                className={`${styles.btnFast} ${isFast ? styles.btnFastActive : ''}`} 
+                onClick={() => setIsFast(!isFast)}
+                disabled={isSpinning}
+                title="Modo Turbo"
+              >
+                ⚡
+              </button>
+              <button
+                className={`${styles.btnSpin} ${isSpinning ? styles.btnSpinActive : ''}`}
+                onClick={spin}
+                disabled={isSpinning}
+              >
+                {isSpinning ? (
+                  <><span className={styles.reel} />Girando...</>
+                ) : '🐉 GIRAR'}
+              </button>
+            </div>
 
             {/* Win lines display */}
             {wins.length > 0 && (

@@ -162,6 +162,7 @@ export function GatesOfForest() {
   const [newCells, setNewCells] = useState<Set<number>>(new Set());
   const [scores, setScores] = useState<{ name: string; amount: number; createdAt: string }[]>([]);
   const [statusMsg, setStatusMsg] = useState('');
+  const [isFast, setIsFast] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Load leaderboard
@@ -194,7 +195,7 @@ export function GatesOfForest() {
     }
   }
 
-  const doSpin = useCallback((grid: Sym[], currentBet: number, isFreeSpins: boolean) => {
+  const doSpin = useCallback((grid: Sym[], currentBet: number, isFreeSpins: boolean, fast: boolean) => {
     // Animate spinning cells
     setSpinningCells(Array(GRID_SIZE).fill(true));
     setWinGroups([]);
@@ -206,12 +207,12 @@ export function GatesOfForest() {
       const newGrid = generateGrid();
       setSpinningCells(Array(GRID_SIZE).fill(false));
       setNewCells(new Set(Array.from({ length: GRID_SIZE }, (_, i) => i)));
-      setTimeout(() => setNewCells(new Set()), 500);
-      processResult(newGrid, currentBet, isFreeSpins, 1, 0);
-    }, 600);
+      setTimeout(() => setNewCells(new Set()), fast ? 150 : 500);
+      processResult(newGrid, currentBet, isFreeSpins, 1, 0, fast);
+    }, fast ? 150 : 600);
   }, []);
 
-  function processResult(grid: Sym[], currentBet: number, isFreeSpins: boolean, mult: number, accumulated: number) {
+  function processResult(grid: Sym[], currentBet: number, isFreeSpins: boolean, mult: number, accumulated: number, fast: boolean) {
     const groups = findWinGroups(grid);
 
     // Count scatters for free spins trigger (🌙 = scatter)
@@ -238,7 +239,7 @@ export function GatesOfForest() {
         setTotalWin(totalNow);
         setRoundWin(prev => prev + totalNow);
         setStatusMsg(`✨ Free Spin! ${freeSpinsLeft - 1} restantes · Ganho: ${fmtMoney(totalNow)}`);
-        setTimeout(() => doSpin(grid, currentBet, true), 1200);
+        setTimeout(() => doSpin(grid, currentBet, true, fast), fast ? 400 : 1200);
         return;
       }
 
@@ -277,10 +278,10 @@ export function GatesOfForest() {
         if (cascaded[i] !== grid[i]) cascIdx.add(i);
       }
       setNewCells(cascIdx);
-      setTimeout(() => setNewCells(new Set()), 500);
+      setTimeout(() => setNewCells(new Set()), fast ? 150 : 500);
       setCascadeCount(c => c + 1);
-      processResult(cascaded, currentBet, isFreeSpins, mult + 1, newAccumulated);
-    }, 1500);
+      processResult(cascaded, currentBet, isFreeSpins, mult + 1, newAccumulated, fast);
+    }, fast ? 400 : 1500);
   }
 
   function spin() {
@@ -289,12 +290,12 @@ export function GatesOfForest() {
     setTotalWin(0);
     setCascadeCount(0);
     setMultiplier(1);
-    doSpin(grid, bet, false);
+    doSpin(grid, bet, false, isFast);
   }
 
   function spinFree() {
     if (phase === 'spinning' || phase === 'cascade') return;
-    doSpin(grid, bet, true);
+    doSpin(grid, bet, true, isFast);
   }
 
   useEffect(() => {
@@ -401,6 +402,14 @@ export function GatesOfForest() {
 
             {/* Action buttons */}
             <div className={styles.actionRow}>
+              <button 
+                className={`${styles.btnFast} ${isFast ? styles.btnFastActive : ''}`} 
+                onClick={() => setIsFast(!isFast)}
+                disabled={isPlaying}
+                title="Modo Turbo"
+              >
+                ⚡
+              </button>
               {canSpinFree ? (
                 <button className={styles.btnFree} onClick={spinFree}>
                   ✨ FREE SPIN ({freeSpinsLeft})
