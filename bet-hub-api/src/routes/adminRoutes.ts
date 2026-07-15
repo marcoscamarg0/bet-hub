@@ -5,7 +5,7 @@ import {
   setUserRole,
   getUserSpins,
 } from '../controllers/adminController.js';
-import { adminUpdateBonuses } from '../controllers/bonusController.js';
+import { upsertBonuses } from '../controllers/bonusController.js';
 import {
   adminGetStreamers,
   adminCreateStreamer,
@@ -25,7 +25,7 @@ router.get('/users/:userId/spins', getUserSpins);
 router.patch('/users/:userId/role', setUserRole);
 
 // [ADMIN] Configurar urls manuais de gorjeta/deposito por casa
-router.patch('/bonuses', adminUpdateBonuses);
+router.patch('/bonuses', upsertBonuses);
 
 // [ADMIN] Streamers
 router.get('/streamers', adminGetStreamers);
