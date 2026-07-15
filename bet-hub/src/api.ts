@@ -100,6 +100,18 @@ export interface EarningsRow {
   spinsHoje: number;
 }
 
+export interface ApiScore {
+  _id: string;
+  name: string;
+  amount: number;
+  mines?: number;
+  cells?: number;
+  game: 'mines' | 'forest' | 'dragon';
+  userId?: string;
+  username?: string;
+  createdAt: string;
+}
+
 // ── Auth ──────────────────────────────────────────────────────
 export const api = {
   register: (name: string, username: string, password: string) =>
@@ -174,4 +186,17 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     }),
+
+  // ── Scores / Ranking ──
+  getScores: (params?: { game?: 'mines' | 'forest' | 'dragon'; period?: 'today' | 'week' | 'all'; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.game) qs.set('game', params.game);
+    if (params?.period && params.period !== 'all') qs.set('period', params.period);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<ApiScore[]>(`/api/score${suffix}`);
+  },
+
+  postScore: (data: { name: string; amount: number; game: 'mines' | 'forest' | 'dragon'; mines?: number; cells?: number; metadata?: Record<string, unknown> }) =>
+    request<ApiScore>('/api/score', { method: 'POST', body: JSON.stringify(data) }),
 };

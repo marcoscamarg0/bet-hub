@@ -6,6 +6,9 @@ import { LoginScreen } from './Login';
 import { AdminPanel } from './AdminPanel';
 import { MemeWheel } from './components/MemeWheel';
 import { MinesGame } from './components/Mines';
+import { GatesOfForest } from './components/GatesOfForest';
+import { FortuneDragon } from './components/FortuneDragon';
+import { GlobalRanking } from './components/GlobalRanking';
 
 // ── Helpers ──────────────────────────────────────────────────
 function rk(houseId: string, idx: number) { return `${houseId}:${idx}`; }
@@ -547,6 +550,9 @@ function Dashboard() {
 
       <MemeWheel />
       <MinesGame />
+      <GatesOfForest />
+      <FortuneDragon />
+      <GlobalRanking />
 
       {/* AMOUNT MODAL */}
       {amountModal && (
