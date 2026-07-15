@@ -21,7 +21,7 @@ function fmtMoney(n: number) {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-type Tab = 'roletas' | 'gorjetas' | 'deposite';
+type Tab = 'roletas' | 'gorjetas' | 'deposite' | 'jogos';
 
 type BonusLink = {
   gorjeta?: string;
@@ -73,6 +73,13 @@ function IconDeposite() {
     </svg>
   );
 }
+function IconJogos() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/>
+    </svg>
+  );
+}
 
 // ── Main Dashboard ──────────────────────────────────────────
 function Dashboard() {
@@ -91,6 +98,7 @@ function Dashboard() {
   const [apiError, setApiError] = useState(false);
   const [manualAmountType, setManualAmountType] = useState<'gorjeta' | 'deposito' | 'ganho' | null>(null);
   const [manualAmountInput, setManualAmountInput] = useState('');
+  const [openGame, setOpenGame] = useState<'mines' | 'forest' | 'dragon' | 'ranking' | null>(null);
 
   const midnightTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -194,6 +202,7 @@ function Dashboard() {
     { id: 'roletas',  label: 'Roletas',  count: pendingCount, icon: <IconRoleta />,  color: '#8b5cf6' },
     { id: 'gorjetas', label: 'Gorjetas', count: gorjetaHouses.length, icon: <IconGorjeta />, color: '#f59e0b' },
     { id: 'deposite', label: 'Deposite', count: depositeHouses.length, icon: <IconDeposite />, color: '#22d3ee' },
+    { id: 'jogos',    label: 'Cassino',  count: 3, icon: <IconJogos />,    color: '#ec4899' },
   ];
 
   const currentHouses = activeTab === 'roletas' ? roletaHouses
@@ -415,6 +424,51 @@ function Dashboard() {
           </div>
         )}
 
+        {/* GAMES GRID */}
+        {activeTab === 'jogos' && (
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div 
+              onClick={() => setOpenGame('mines')}
+              className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+              style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              <div className="text-3xl mb-2 filter drop-shadow-md">💣</div>
+              <div className="font-bold text-white mb-1 tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>Mines</div>
+              <div className="text-[10px] text-slate-400 leading-tight">Desvie das minas e multiplique!</div>
+            </div>
+            
+            <div 
+              onClick={() => setOpenGame('forest')}
+              className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+              style={{ background: 'linear-gradient(135deg, #064e3b, #065f46)', border: '1px solid rgba(52,211,153,0.3)' }}
+            >
+              <div className="text-3xl mb-2 filter drop-shadow-md">🌿</div>
+              <div className="font-bold text-white mb-1 tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>Gates of Forest</div>
+              <div className="text-[10px] text-emerald-200/80 leading-tight">Slots místico · Cascatas</div>
+            </div>
+            
+            <div 
+              onClick={() => setOpenGame('dragon')}
+              className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+              style={{ background: 'linear-gradient(135deg, #7f1d1d, #991b1b)', border: '1px solid rgba(239,68,68,0.3)' }}
+            >
+              <div className="text-3xl mb-2 filter drop-shadow-md">🐉</div>
+              <div className="font-bold text-white mb-1 tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>Fortune Dragon</div>
+              <div className="text-[10px] text-red-200/80 leading-tight">20 linhas · Multiplicadores</div>
+            </div>
+            
+            <div 
+              onClick={() => setOpenGame('ranking')}
+              className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+              style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', border: '1px solid rgba(139,92,246,0.3)' }}
+            >
+              <div className="text-3xl mb-2 filter drop-shadow-md">🏆</div>
+              <div className="font-bold text-white mb-1 tracking-tight" style={{fontFamily:'Syne,sans-serif'}}>Ranking Global</div>
+              <div className="text-[10px] text-violet-200/80 leading-tight">Maiores ganhadores</div>
+            </div>
+          </div>
+        )}
+
         {/* HOUSES LIST */}
         <div className="space-y-2">
           {currentHouses.map((house, hi) => {
@@ -525,7 +579,7 @@ function Dashboard() {
           })}
         </div>
 
-        {currentHouses.length === 0 && (
+        {currentHouses.length === 0 && activeTab !== 'jogos' && (
           <div className="text-center py-16 text-slate-700">
             <div className="text-4xl mb-3 opacity-50">
               {activeTab === 'gorjetas' ? '💰' : activeTab === 'deposite' ? '🏦' : '🎯'}
@@ -549,10 +603,10 @@ function Dashboard() {
       </footer>
 
       <MemeWheel />
-      <MinesGame />
-      <GatesOfForest />
-      <FortuneDragon />
-      <GlobalRanking />
+      <MinesGame isOpen={openGame === 'mines'} onClose={() => setOpenGame(null)} />
+      <GatesOfForest isOpen={openGame === 'forest'} onClose={() => setOpenGame(null)} />
+      <FortuneDragon isOpen={openGame === 'dragon'} onClose={() => setOpenGame(null)} />
+      <GlobalRanking isOpen={openGame === 'ranking'} onClose={() => setOpenGame(null)} />
 
       {/* AMOUNT MODAL */}
       {amountModal && (
