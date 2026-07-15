@@ -94,32 +94,41 @@ async function checkTwitch(streamers: IStreamer[]) {
 
 async function checkYouTube(streamers: IStreamer[]) {
   if (streamers.length === 0) return;
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) {
-    console.warn('[LiveCheck] Missing YouTube API Key, skipping.');
-    return;
-  }
 
   for (const s of streamers) {
     try {
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${s.channelId}&eventType=live&type=video&key=${apiKey}`);
-      if (!res.ok) throw new Error(`YouTube API error: ${res.status}`);
-      const data = await res.json() as { items: any[] };
-
-      if (data.items && data.items.length > 0) {
-        console.log(`[LiveCheck] YOUTUBE: Streamer ${s.name} (${s.channelId}) ESTÁ AO VIVO!`);
-        const streamData = data.items[0];
-        s.isLive = true;
-        s.streamTitle = streamData.snippet.title;
-        s.streamUrl = `https://youtube.com/watch?v=${streamData.id.videoId}`;
-        s.thumbnailUrl = streamData.snippet.thumbnails?.medium?.url;
-      } else {
+      const res = await fetch(`https://www.youtube.com/channel/${s.channelId}/live`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+      });
+      const text = await res.text();
+      
+      const match = text.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+      let isLive = false;
+      
+      if (match) {
+        try {
+          const data = JSON.parse(match[1]);
+          if (data.videoDetails?.isLiveContent) {
+            isLive = true;
+            s.isLive = true;
+            s.streamTitle = data.videoDetails.title;
+            s.streamUrl = `https://youtube.com/watch?v=${data.videoDetails.videoId}`;
+            s.thumbnailUrl = data.videoDetails.thumbnail?.thumbnails?.[0]?.url || undefined;
+            console.log(`[LiveCheck] YOUTUBE: Streamer ${s.name} (${s.channelId}) ESTÁ AO VIVO!`);
+          }
+        } catch (e) {
+          console.error(`[LiveCheck] Failed to parse YouTube data for ${s.name}`, e);
+        }
+      }
+      
+      if (!isLive) {
         console.log(`[LiveCheck] YOUTUBE: Streamer ${s.name} (${s.channelId}) está OFFLINE.`);
         s.isLive = false;
         s.streamTitle = undefined;
         s.streamUrl = undefined;
         s.thumbnailUrl = undefined;
       }
+      
       s.lastChecked = new Date();
       await s.save();
     } catch (err) {
