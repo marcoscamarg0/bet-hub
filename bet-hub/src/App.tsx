@@ -393,26 +393,33 @@ function Dashboard() {
           </div>
         )}
 
-        {/* TABS */}
-        <div className="flex gap-1 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.055)'}}>
-          {tabs.map(tab => {
+        <div className="flex gap-2 mb-6 p-1.5 rounded-2xl w-fit mx-auto" 
+          style={{background:'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'}}>
+          {[
+            { id: 'roletas', label: 'Roletas', count: totalRoletas > 0 ? `${doneCount}/${totalRoletas}` : 0, icon: <IconRoleta />, color: '#7c3aed' },
+            { id: 'gorjetas', label: 'Gorjetas', count: gorjetaHouses.length, icon: <IconGorjeta />, color: '#f59e0b' },
+            { id: 'deposite', label: 'Deposite', count: depositeHouses.length, icon: <IconDeposite />, color: '#10b981' },
+            { id: 'jogos', label: 'Cassino', count: 3, icon: <IconJogos />, color: '#ec4899' },
+          ].map(tab => {
             const active = activeTab === tab.id;
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all duration-200"
-                style={active
-                  ? { background: `${tab.color}18`, color: tab.color, border: `1px solid ${tab.color}30` }
-                  : { background: 'transparent', color: '#4b5563', border: '1px solid transparent' }}>
-                <span style={{opacity: active ? 1 : 0.6}}>{tab.icon}</span>
-                <span>{tab.label}</span>
-                {tab.count > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-md text-xs font-bold"
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)}
+                className={`relative px-5 py-2.5 rounded-xl text-sm font-syne font-bold transition-all duration-300 flex items-center gap-2 ${active ? 'scale-105' : 'hover:bg-white/5'}`}
+                style={active ? {
+                  background: `linear-gradient(135deg, ${tab.color} 0%, ${tab.color}99 100%)`,
+                  color: 'white',
+                  boxShadow: `0 8px 20px -5px ${tab.color}66, inset 0 2px 5px rgba(255,255,255,0.2)`
+                } : {
+                  color: '#94a3b8'
+                }}>
+                <span className="opacity-80 scale-110">{tab.icon}</span>
+                {tab.label}
+                {tab.count !== 0 && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[0.65rem] font-bold"
                     style={{
-                      background: active ? `${tab.color}25` : 'rgba(255,255,255,0.06)',
-                      color: active ? tab.color : '#374151',
-                      fontSize: '0.6rem'
+                      background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.08)',
+                      color: active ? '#fff' : tab.color,
+                      boxShadow: active ? 'inset 0 1px 3px rgba(0,0,0,0.3)' : 'none'
                     }}>
                     {tab.count}
                   </span>
@@ -433,17 +440,35 @@ function Dashboard() {
 
         {/* LIVE STREAMERS */}
         {activeTab === 'gorjetas' && liveStreamers.map((s, i) => (
-          <div key={s._id} className="rounded-xl p-4 border flex items-center gap-4"
-            style={{background: 'rgba(239,68,68,0.03)', borderColor: 'rgba(239,68,68,0.15)'}}>
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-xl">🔴</div>
-            <div className="flex-1">
-              <div className="text-sm font-bold text-red-400">{s.name}</div>
-              <div className="text-xs text-slate-500">{s.streamTitle || 'Ao vivo agora!'}</div>
+          <div key={s._id} className="rounded-xl p-5 border flex items-center gap-4 fade-in-up"
+            style={{
+              background: 'linear-gradient(145deg, rgba(239,68,68,0.08) 0%, rgba(20,10,10,0.5) 100%)', 
+              borderColor: 'rgba(239,68,68,0.2)',
+              boxShadow: '0 8px 32px rgba(239,68,68,0.1)',
+              animationDelay: `${i * 0.1}s`
+            }}>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(239,68,68,0.3)] border border-red-500/30"
+              style={{background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)'}}>
+              <span className="live-pulse text-white">🔴</span>
             </div>
-            <a href={s.streamUrl} target="_blank" rel="noopener noreferrer" 
-              className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">
-              Assistir
-            </a>
+            <div className="flex-1">
+              <div className="text-lg font-syne font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
+                {s.name}
+              </div>
+              <div className="text-xs text-slate-400 mt-0.5 line-clamp-1">{s.streamTitle || 'Ao vivo agora!'}</div>
+            </div>
+            <div className="flex gap-2">
+              <a href={s.streamUrl} target="_blank" rel="noopener noreferrer" 
+                className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors">
+                Assistir
+              </a>
+              {s.tipUrl && (
+                <a href={s.tipUrl} target="_blank" rel="noopener noreferrer" 
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors">
+                  Enviar Gorjeta
+                </a>
+              )}
+            </div>
           </div>
         ))}
 
