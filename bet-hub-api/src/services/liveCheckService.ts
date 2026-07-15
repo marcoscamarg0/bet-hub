@@ -9,86 +9,48 @@ import { Streamer, IStreamer } from '../models/Streamer.js';
 let twitchAccessToken: string | null = null;
 let twitchTokenExpiresAt: number = 0;
 
-/** Retrieves and caches a Twitch App Access Token */
-async function getTwitchToken(): Promise<string | null> {
-  const clientId = process.env.TWITCH_CLIENT_ID;
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) return null;
-
-  if (twitchAccessToken && Date.now() < twitchTokenExpiresAt) {
-    return twitchAccessToken;
-  }
-
-  try {
-    const params = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'client_credentials',
-    });
-    const res = await fetch(`https://id.twitch.tv/oauth2/token`, {
-      method: 'POST',
-      body: params,
-    });
-    if (!res.ok) throw new Error('Failed to fetch twitch token');
-    
-    const data = await res.json() as { access_token: string, expires_in: number };
-    twitchAccessToken = data.access_token;
-    twitchTokenExpiresAt = Date.now() + (data.expires_in - 300) * 1000;
-    return twitchAccessToken;
-  } catch (error) {
-    console.error('[LiveCheck] Error getting Twitch Token:', error);
-    return null;
-  }
-}
-
 async function checkTwitch(streamers: IStreamer[]) {
   if (streamers.length === 0) return;
-  const token = await getTwitchToken();
-  const clientId = process.env.TWITCH_CLIENT_ID;
-  
-  if (!token || !clientId) {
-    console.warn('[LiveCheck] Missing Twitch credentials, skipping.');
-    return;
-  }
 
-  try {
-    const logins = streamers.map(s => s.channelId).join('&user_login=');
-    const res = await fetch(`https://api.twitch.tv/helix/streams?user_login=${logins}`, {
-      headers: {
-        'Client-ID': clientId,
-        'Authorization': `Bearer ${token}`
-      }
-    });
+  for (const s of streamers) {
+    try {
+      const query = `
+        query {
+          user(login: "${s.channelId}") {
+            stream {
+              id
+              title
+              type
+            }
+          }
+        }
+      `;
+      const res = await fetch("https://gql.twitch.tv/gql", {
+        method: "POST",
+        headers: { "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko" },
+        body: JSON.stringify({ query })
+      });
+      
+      const data = await res.json() as any;
+      const streamData = data?.data?.user?.stream;
 
-    if (!res.ok) throw new Error(`Twitch API error: ${res.status}`);
-    const data = await res.json() as { data: any[] };
-    const liveLogins = new Map<string, any>();
-    
-    for (const stream of data.data) {
-      liveLogins.set(stream.user_login.toLowerCase(), stream);
-    }
-
-    for (const s of streamers) {
-      const streamData = liveLogins.get(s.channelId.toLowerCase());
-      if (streamData) {
+      if (streamData && streamData.type === 'live') {
         console.log(`[LiveCheck] TWITCH: Streamer ${s.name} (${s.channelId}) ESTÁ AO VIVO!`);
         s.isLive = true;
         s.streamTitle = streamData.title;
-        s.streamUrl = `https://twitch.tv/${streamData.user_login}`;
-        s.thumbnailUrl = streamData.thumbnail_url.replace('{width}', '320').replace('{height}', '180');
+        s.streamUrl = `https://twitch.tv/${s.channelId}`;
       } else {
         console.log(`[LiveCheck] TWITCH: Streamer ${s.name} (${s.channelId}) está OFFLINE.`);
         s.isLive = false;
         s.streamTitle = undefined;
         s.streamUrl = undefined;
-        s.thumbnailUrl = undefined;
       }
+      
       s.lastChecked = new Date();
       await s.save();
+    } catch (err) {
+      console.error(`[LiveCheck] Twitch check failed for ${s.channelId}:`, err);
     }
-  } catch (err) {
-    console.error('[LiveCheck] Twitch check failed:', err);
   }
 }
 
