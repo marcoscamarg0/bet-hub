@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Streamer } from '../models/Streamer.js';
+import { checkAllStreamers } from '../services/liveCheckService.js';
 
 // ── PUBLIC ────────────────────────────────────────────────────────
 
@@ -67,5 +68,15 @@ export async function adminDeleteStreamer(req: Request, res: Response) {
     return res.json({ ok: true });
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao deletar streamer' });
+  }
+}
+
+/** POST /api/admin/streamers/check — Força a verificação de status manual */
+export async function adminForceCheckStreamers(req: Request, res: Response) {
+  try {
+    await checkAllStreamers();
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro ao forçar verificação' });
   }
 }

@@ -252,4 +252,6 @@ export const api = {
 
   adminDeleteStreamer: (id: string) =>
     request<{ ok: true }>(`/api/admin/streamers/${id}`, { method: 'DELETE' }),
+
+  adminForceCheckStreamers: () => request<{ ok: true }>('/api/admin/streamers/check', { method: 'POST' }),
 };

@@ -469,6 +469,7 @@ function StreamersTab() {
   const [streamers, setStreamers] = useState<any[]>([]);
   const [form, setForm] = useState({ name: '', platform: 'twitch', channelId: '', tipUrl: '' });
   const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -506,10 +507,31 @@ function StreamersTab() {
     }
   }
 
+  async function handleForceCheck() {
+    try {
+      setChecking(true);
+      await api.adminForceCheckStreamers();
+      await load();
+      alert('Verificação concluída! Veja o terminal do backend para os logs detalhados.');
+    } catch (err) {
+      alert('Erro ao forçar verificação');
+    } finally {
+      setChecking(false);
+    }
+  }
+
   if (loading) return <div className="text-slate-400">Carregando...</div>;
 
   return (
     <div className="flex flex-col gap-6 pb-20">
+      <div className="flex justify-between items-center">
+        <h2 className="text-white font-bold">Gerenciar Streamers</h2>
+        <button onClick={handleForceCheck} disabled={checking}
+          className="px-4 py-2 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors disabled:opacity-50">
+          {checking ? 'Verificando...' : 'Forçar Verificação Agora'}
+        </button>
+      </div>
+
       <form onSubmit={handleCreate} className="p-4 rounded-2xl border flex flex-col gap-4"
         style={{background:'rgba(255,255,255,0.02)', borderColor:'rgba(255,255,255,0.06)'}}>
         <h3 className="font-bold text-white mb-2">Adicionar Streamer</h3>

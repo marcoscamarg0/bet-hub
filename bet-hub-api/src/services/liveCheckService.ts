@@ -72,11 +72,13 @@ async function checkTwitch(streamers: IStreamer[]) {
     for (const s of streamers) {
       const streamData = liveLogins.get(s.channelId.toLowerCase());
       if (streamData) {
+        console.log(`[LiveCheck] TWITCH: Streamer ${s.name} (${s.channelId}) ESTÁ AO VIVO!`);
         s.isLive = true;
         s.streamTitle = streamData.title;
         s.streamUrl = `https://twitch.tv/${streamData.user_login}`;
         s.thumbnailUrl = streamData.thumbnail_url.replace('{width}', '320').replace('{height}', '180');
       } else {
+        console.log(`[LiveCheck] TWITCH: Streamer ${s.name} (${s.channelId}) está OFFLINE.`);
         s.isLive = false;
         s.streamTitle = undefined;
         s.streamUrl = undefined;
@@ -105,12 +107,14 @@ async function checkYouTube(streamers: IStreamer[]) {
       const data = await res.json() as { items: any[] };
 
       if (data.items && data.items.length > 0) {
+        console.log(`[LiveCheck] YOUTUBE: Streamer ${s.name} (${s.channelId}) ESTÁ AO VIVO!`);
         const streamData = data.items[0];
         s.isLive = true;
         s.streamTitle = streamData.snippet.title;
         s.streamUrl = `https://youtube.com/watch?v=${streamData.id.videoId}`;
         s.thumbnailUrl = streamData.snippet.thumbnails?.medium?.url;
       } else {
+        console.log(`[LiveCheck] YOUTUBE: Streamer ${s.name} (${s.channelId}) está OFFLINE.`);
         s.isLive = false;
         s.streamTitle = undefined;
         s.streamUrl = undefined;
@@ -125,15 +129,23 @@ async function checkYouTube(streamers: IStreamer[]) {
 }
 
 export async function checkAllStreamers() {
+  console.log(`\n[LiveCheck] Iniciando verificação às ${new Date().toISOString()}`);
   try {
     const streamers = await Streamer.find();
-    if (streamers.length === 0) return;
+    if (streamers.length === 0) {
+      console.log('[LiveCheck] Nenhum streamer cadastrado no banco. Encerrando check.');
+      return;
+    }
 
     const twitchStreamers = streamers.filter(s => s.platform === 'twitch');
     const youtubeStreamers = streamers.filter(s => s.platform === 'youtube');
 
+    console.log(`[LiveCheck] Encontrados ${twitchStreamers.length} na Twitch e ${youtubeStreamers.length} no YouTube.`);
+
     await checkTwitch(twitchStreamers);
     await checkYouTube(youtubeStreamers);
+    
+    console.log(`[LiveCheck] Verificação finalizada.`);
   } catch (err) {
     console.error('[LiveCheck] General error:', err);
   }
