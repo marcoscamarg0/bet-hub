@@ -242,7 +242,7 @@ function Dashboard() {
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255,255,255,0.055)'
       }}>
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-lg"
@@ -275,7 +275,7 @@ function Dashboard() {
       </header>
 
       {apiError && (
-        <div className="max-w-2xl mx-auto px-4 pt-3">
+        <div className="max-w-4xl mx-auto px-4 pt-4">
           <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-amber-400/90 text-xs border"
             style={{background:'rgba(245,158,11,0.07)', borderColor:'rgba(245,158,11,0.15)'}}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
@@ -284,7 +284,7 @@ function Dashboard() {
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 pb-28 pt-4 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 pb-28 pt-6 space-y-6">
 
         {/* STATS CARD */}
         <div className="rounded-2xl p-5 relative overflow-hidden"
@@ -459,13 +459,13 @@ function Dashboard() {
             </div>
             <div className="flex gap-2">
               <a href={s.streamUrl} target="_blank" rel="noopener noreferrer" 
-                className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors">
+                className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all duration-300 hover:scale-105 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)]">
                 Assistir
               </a>
               {s.tipUrl && (
                 <a href={s.tipUrl} target="_blank" rel="noopener noreferrer" 
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors">
-                  Enviar Gorjeta
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all duration-300 hover:scale-105 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)]">
+                  Receber Gorjeta
                 </a>
               )}
             </div>
@@ -474,7 +474,7 @@ function Dashboard() {
 
         {/* GAMES GRID */}
         {activeTab === 'jogos' && (
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
             <div 
               onClick={() => setOpenGame('mines')}
               className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.03]"

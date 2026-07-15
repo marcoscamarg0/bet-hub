@@ -50,7 +50,7 @@ export function LiveAlert({ onGoToGorjetas }: { onGoToGorjetas: () => void }) {
                   setVisible(false);
                 }}
               >
-                Enviar Gorjeta
+                Receber Gorjeta
               </a>
             ) : (
               <button
